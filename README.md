@@ -10,7 +10,7 @@ This extension depends on packages from the pi-mono monorepo via `file:` depende
 
 ```
 workspaces/
-├── pi-mono/
+├── pi-mono/           # @mariozechner/pi-ai and @mariozechner/pi-web-ui
 │   └── packages/
 │       ├── ai/
 │       └── web-ui/
@@ -24,7 +24,9 @@ workspaces/
 npm install
 ```
 
-2. Start pi-mono dev server (in another terminal):
+### Development
+
+Start pi-mono dev server (in another terminal):
 ```bash
 cd ../pi-mono
 npm run dev
@@ -32,14 +34,14 @@ npm run dev
 
 This will watch and rebuild `@mariozechner/pi-ai` and `@mariozechner/pi-web-ui` packages.
 
-3. Start sitegeist dev server:
+Then start sitegeist dev server:
 ```bash
 npm run dev
 ```
 
 This will:
 - Watch and rebuild the extension for both Chrome and Firefox
-- Watch and rebuild Tailwind CSS
+- Watch and rebuild Tailwind CSS  
 - Run hot reload server on port 8765
 
 ### Building
@@ -87,10 +89,10 @@ Key features:
 
 ## Dependencies
 
-- `@mariozechner/pi-ai` - AI provider abstractions and agent loop
-- `@mariozechner/pi-web-ui` - Reusable chat UI components
+- `@mariozechner/pi-ai` - AI provider abstractions and agent loop (file: dependency)
+- `@mariozechner/pi-web-ui` - Reusable chat UI components (file: dependency)
+- `@mariozechner/mini-lit` - Web components library (npm)
 - Chrome/Firefox extension APIs
-- mini-lit web components
 - Tailwind CSS v4
 
 ## License
