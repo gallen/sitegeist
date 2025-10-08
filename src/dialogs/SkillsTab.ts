@@ -3,6 +3,7 @@ import { SettingsTab } from "@mariozechner/pi-web-ui";
 import { getSitegeistStorage } from "../storage/app-storage.js";
 import type { Skill } from "../storage/skills-repository.js";
 import { getFaviconUrl } from "../utils/favicon.js";
+import { Toast } from "../components/Toast.js";
 
 export class SkillsTab extends SettingsTab {
 	label = "Skills";
@@ -111,7 +112,7 @@ export class SkillsTab extends SettingsTab {
 				const imported = JSON.parse(text) as Skill[];
 
 				if (!Array.isArray(imported)) {
-					alert("Invalid skills file: expected an array of skills");
+					Toast.error("Invalid skills file: expected an array of skills");
 					return;
 				}
 
@@ -138,7 +139,7 @@ export class SkillsTab extends SettingsTab {
 					await this.performImport(imported);
 				}
 			} catch (error) {
-				alert(`Failed to import skills: ${(error as Error).message}`);
+				Toast.error(`Failed to import skills: ${(error as Error).message}`);
 			}
 		};
 		input.click();
@@ -159,7 +160,7 @@ export class SkillsTab extends SettingsTab {
 
 		this.importConflicts = [];
 		await this.loadSkills();
-		alert(`Imported ${imported} skill(s)`);
+		Toast.success(`Imported ${imported} skill(s)`);
 	}
 
 	toggleConflictSelection(index: number) {
