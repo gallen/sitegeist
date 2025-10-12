@@ -1,11 +1,15 @@
-import { Button, icon } from "@mariozechner/mini-lit";
+import { Button, icon, Switch } from "@mariozechner/mini-lit";
 import { getModel } from "@mariozechner/pi-ai";
 import { html, render } from "lit";
-import { ArrowLeft, Play } from "lucide";
+import { ArrowLeft, Play, Bug } from "lucide";
 import { setAppStorage } from "@mariozechner/pi-web-ui";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import "./debug/ReplPanel.js";
 import "./debug/BrowserReplPanel.js";
+
+// Cross-browser API compatibility
+// @ts-expect-error - browser global exists in Firefox, chrome in Chrome
+const browser = globalThis.browser || globalThis.chrome;
 
 
 interface TestPrompt {
@@ -59,21 +63,46 @@ const TEST_PROMPTS: TestPrompt[] = [
 	},
 ];
 
-const renderDebugPage = () => {
+const renderDebugPage = async () => {
+	// Get current debugger mode state
+	const stored = await browser.storage.local.get("debuggerMode");
+	let debuggerMode = stored.debuggerMode || false;
+
+	const updateDebuggerMode = async (enabled: boolean) => {
+		debuggerMode = enabled;
+		await browser.storage.local.set({ debuggerMode: enabled });
+		renderDebugPage(); // Re-render to update UI
+	};
+
 	const debugHtml = html`
 		<div class="w-full h-full flex flex-col bg-background text-foreground overflow-hidden">
 			<!-- Header -->
-			<div class="flex items-center gap-2 px-3 py-2 border-b border-border shrink-0">
-				${Button({
-					variant: "ghost",
-					size: "sm",
-					children: icon(ArrowLeft, "sm"),
-					onClick: () => {
-						window.location.href = "./sidepanel.html";
-					},
-					title: "Back to chat",
-				})}
-				<span class="text-sm font-semibold">Debug</span>
+			<div class="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0">
+				<div class="flex items-center gap-2">
+					${Button({
+						variant: "ghost",
+						size: "sm",
+						children: icon(ArrowLeft, "sm"),
+						onClick: () => {
+							window.location.href = "./sidepanel.html";
+						},
+						title: "Back to chat",
+					})}
+					<span class="text-sm font-semibold">Debug</span>
+				</div>
+				<div class="flex items-center gap-2">
+					${icon(Bug, "sm")}
+					<span class="text-xs text-muted-foreground">Debugger Tool</span>
+					${Switch(
+						debuggerMode,
+						(checked: boolean) => {
+							updateDebuggerMode(checked);
+						},
+						undefined,
+						false,
+						"",
+					)}
+				</div>
 			</div>
 
 			<!-- Debug content -->

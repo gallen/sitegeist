@@ -1,6 +1,6 @@
 import { Button, Input, icon } from "@mariozechner/mini-lit";
 import "@mariozechner/mini-lit/dist/ThemeToggle.js";
-import { getModel } from "@mariozechner/pi-ai";
+import { type AgentTool, getModel } from "@mariozechner/pi-ai";
 import {
 	Agent,
 	type AgentState,
@@ -33,6 +33,7 @@ import { SYSTEM_PROMPT } from "./prompts/tool-prompts.js";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import { BrowserJavaScriptTool, skillTool } from "./tools/index.js";
 import { isToolNavigating, NavigateTool } from "./tools/navigate.js";
+import { DebuggerTool } from "./tools/debugger.js";
 import "./utils/i18n-extension.js";
 import "./utils/live-reload.js";
 
@@ -40,7 +41,7 @@ const welcomeMessages = [
 	{
 		label: "What is Sitegeist?",
 		prompt:
-			"I'm not technical - introduce me to Sitegeist step by step. First, tell me how to make this side panel wider by dragging its left edge - this helps see outputs better. Then start by searching Google for 'best chocolate chip cookie recipe' to show me the basics. CRITICAL: Keep explanations SHORT - 2-3 sentences max per step. I'm learning a completely new tool with no frame of reference, so less is more. After EACH demonstration, you MUST STOP and wait for me to respond. Ask if I have questions and give me clear options for what to do next (like 'try it yourself', 'see the next capability', or 'explore this deeper'). DO NOT continue to the next lesson until I tell you to. When interacting with page elements (clicking, typing, etc.), ALWAYS scroll them into view first so I can see what's happening. Cover these capabilities one at a time: reading web pages, clicking and interacting with sites, extracting information, automating repetitive tasks, and creating useful outputs. If opportunities naturally arise, briefly demonstrate advanced features like: creating interactive HTML tools, working with PDFs/Word/Excel files, automating YouTube (getting transcripts, comments), or automating WhatsApp - but only if it fits the flow naturally, don't force it. If you create reusable functions for a website, explain that these are called 'skills' and can be saved for future use. Keep examples practical and relatable. Build complexity gradually so I'm never overwhelmed.",
+			"I'm not technical - introduce me to Sitegeist step by step. First, tell me how to make this side panel wider by dragging its left edge - this helps see outputs better. Then start by searching Google for 'best chocolate chip cookie recipe' to show me the basics. CRITICAL: Keep explanations SHORT - 2-3 sentences max per step. I'm learning a completely new tool with no frame of reference, so less is more. After EACH demonstration, you MUST STOP and wait for me to respond. Ask if I have questions and give me clear options for what to do next (like 'try it yourself', 'see the next capability', or 'explore this deeper'). DO NOT continue to the next lesson until I tell you to. When interacting with page elements (clicking, typing, etc.), ALWAYS scroll them into view first so I can see what's happening. Cover these capabilities one at a time: reading web pages, clicking and interacting with sites, extracting information, automating repetitive tasks, and creating useful outputs. If opportunities naturally arise, briefly demonstrate advanced features like: creating interactive HTML tools, reading AND creating PDFs/Word/Excel files, automating YouTube (getting transcripts, comments), or automating WhatsApp - but only if it fits the flow naturally, don't force it. If you create reusable functions for a website, explain that these are called 'skills' and can be saved for future use. Keep examples practical and relatable. Build complexity gradually so I'm never overwhelmed.",
 	},
 	{
 		label: "Research Profile",
@@ -214,6 +215,10 @@ const createAgent = async (
 		agentUnsubscribe();
 	}
 
+	// Load debugger mode setting
+	const stored = await browserAPI.storage.local.get("debuggerMode");
+	const debuggerModeEnabled = stored.debuggerMode || false;
+
 	const transport = new ProviderTransport();
 
 	agent = new Agent({
@@ -339,7 +344,16 @@ const createAgent = async (
 				artifactsPanel,
 				agent,
 			);
-			return [navigateTool, browserJavaScriptTool, skillTool];
+
+			const tools: AgentTool<any, any>[] = [navigateTool, browserJavaScriptTool, skillTool];
+
+			// Conditionally add debugger tool if enabled
+			if (debuggerModeEnabled) {
+				const debuggerTool = new DebuggerTool(agent);
+				tools.push(debuggerTool);
+			}
+
+			return tools;
 		},
 	});
 
