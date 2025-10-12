@@ -103,12 +103,24 @@ async function generateIcon(iconSize: IconSize) {
 	const statusEl = document.getElementById(`status-${iconSize.size}`);
 	const downloadBtnWrapper = document.getElementById(`download-${iconSize.size}`);
 	const downloadBtn = downloadBtnWrapper?.querySelector("button");
+	const previewEl = document.getElementById(`preview-${iconSize.size}`);
 
 	if (statusEl) statusEl.textContent = "Generating...";
 	if (downloadBtn) downloadBtn.disabled = true;
+	if (previewEl) previewEl.innerHTML = "";
 
 	try {
 		const blob = await captureOrbAsImage(iconSize.size);
+
+		// Show preview
+		if (previewEl) {
+			const img = document.createElement("img");
+			img.src = URL.createObjectURL(blob);
+			img.style.width = `${iconSize.size}px`;
+			img.style.height = `${iconSize.size}px`;
+			img.style.imageRendering = "pixelated"; // Keep sharp edges
+			previewEl.appendChild(img);
+		}
 
 		if (statusEl) statusEl.textContent = "✓ Ready";
 		if (downloadBtn) {
@@ -119,6 +131,7 @@ async function generateIcon(iconSize: IconSize) {
 		console.error(`Failed to generate ${iconSize.name}:`, error);
 		if (statusEl) statusEl.textContent = `✗ Error: ${error}`;
 		if (downloadBtn) downloadBtn.disabled = true;
+		if (previewEl) previewEl.innerHTML = "";
 	}
 }
 
@@ -201,7 +214,7 @@ function renderIconsPage() {
 							(iconSize) => html`
 								<div class="flex items-center justify-between p-4 bg-secondary rounded-lg">
 									<div class="flex items-center gap-4">
-										<div class="w-16 h-16 bg-background rounded border border-border flex items-center justify-center">
+										<div id="preview-${iconSize.size}" class="w-16 h-16 bg-background rounded border border-border flex items-center justify-center">
 											<span class="text-xs text-muted-foreground">${iconSize.size}×${iconSize.size}</span>
 										</div>
 										<div>

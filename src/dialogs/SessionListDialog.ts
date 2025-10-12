@@ -427,7 +427,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 									? html`
 										<div class="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-background shadow-lg z-50">
 											<button
-												class="w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors rounded-t-md"
+												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors rounded-t-md"
 												@click=${() => {
 													this.showDeleteMenu = false;
 													this.handleDeleteOlderThan(7);
@@ -436,7 +436,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 												${i18n("Delete older than 7 days")}
 											</button>
 											<button
-												class="w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors"
+												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors"
 												@click=${() => {
 													this.showDeleteMenu = false;
 													this.handleDeleteOlderThan(30);
@@ -445,7 +445,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 												${i18n("Delete older than 30 days")}
 											</button>
 											<button
-												class="w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors border-t border-border rounded-b-md"
+												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors border-t border-border rounded-b-md"
 												@click=${() => {
 													this.showDeleteMenu = false;
 													this.handleDeleteOlderThan(90);
