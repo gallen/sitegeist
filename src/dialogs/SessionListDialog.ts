@@ -188,10 +188,8 @@ export class SitegeistSessionListDialog extends DialogBase {
 				}
 			}
 
-			// Export as single object if one session, array if multiple
-			const exportData = exported.length === 1 ? exported[0] : exported;
-
-			const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+			// Always export as array
+			const blob = new Blob([JSON.stringify(exported, null, 2)], {
 				type: "application/json",
 			});
 			const url = URL.createObjectURL(blob);
@@ -285,8 +283,8 @@ export class SitegeistSessionListDialog extends DialogBase {
 				const text = await file.text();
 				const importData = JSON.parse(text);
 
-				// Handle single ExportedSession or array of ExportedSession
-				const sessionsToImport: ExportedSession[] = Array.isArray(importData) ? importData : [importData];
+				// Import expects array of ExportedSession
+				const sessionsToImport: ExportedSession[] = importData;
 
 				// Validate format
 				if (!sessionsToImport.every(s => s.session && s.metadata)) {
