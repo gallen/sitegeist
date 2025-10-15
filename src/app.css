@@ -88,10 +88,18 @@ body {
 
 .orb-container {
 	background-color: var(--background);
+	/* Responsive sizing: scale with viewport height, capped at 400px */
+	width: min(400px, 30vh);
+	height: min(400px, 30vh);
+	display: block;
+	/* Ensure it maintains aspect ratio */
+	aspect-ratio: 1 / 1;
 }
 
 .orb-container canvas {
 	background-color: var(--background) !important;
+	width: 100% !important;
+	height: 100% !important;
 }
 
 .rotating-word {

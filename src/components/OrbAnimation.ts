@@ -23,8 +23,11 @@ export class OrbAnimation extends LitElement {
 		this.container = this.querySelector(".orb-container") as HTMLDivElement;
 		if (!this.container) return;
 
-		this.initThreeJS();
-		this.animateOrb();
+		// Wait for CSS to apply and container to have dimensions
+		requestAnimationFrame(() => {
+			this.initThreeJS();
+			this.animateOrb();
+		});
 	}
 
 	override disconnectedCallback() {
@@ -240,6 +243,6 @@ export class OrbAnimation extends LitElement {
 	};
 
 	override render(): TemplateResult {
-		return html`<div class="orb-container" style="width: 400px; height: 400px; display: block;"></div>`;
+		return html`<div class="orb-container"></div>`;
 	}
 }
