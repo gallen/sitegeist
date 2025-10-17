@@ -8,17 +8,17 @@
 - [x] ATTACHMENTS - 578 → 309 tokens (47% reduction)
 - [x] BROWSERJS - 544 → 528 tokens (3% reduction, added critical serialization guidance)
 
-## Total Progress
+## Total Progress - COMPLETE ✅
 - Runtime Providers: 3,512 → 2,128 tokens (39% reduction, saved 1,384 tokens)
-- Tools Completed: 6/7 tools optimized
+- Tools Completed: 7/7 tools optimized
+  - system_prompt: 3,400 → ~900 tokens (74% reduction)
   - skill: 2,165 → ~870 tokens (60% reduction)
   - repl: 2,698 → ~650 tokens (76% reduction)
   - artifacts: 1,595 → ~550 tokens (65% reduction)
   - ask_user_which_element: 394 → 112 tokens (72% reduction)
   - extract_document: 263 → 107 tokens (59% reduction)
   - navigate: 220 → 179 tokens (19% reduction)
-- Tools Remaining: system_prompt (TBD tokens)
-- Complete agent setup: ~7,555 tokens (down from ~13,034, saved ~5,479 tokens so far, 42% reduction)
+- Complete agent setup: ~5,055 tokens (down from ~13,034, saved ~7,979 tokens total, 61% reduction)
 
 ### Runtime Providers Summary
 All 6 runtime provider descriptions have been optimized following a consistent pattern:
@@ -56,9 +56,16 @@ All 6 runtime provider descriptions have been optimized following a consistent p
   - Merged User Testing sections
   - Removed verbose "Why patch is better" explanations
 
-- [ ] **system_prompt** - TBD tokens
+- [x] **system_prompt** - 3,400 → ~900 tokens (74% reduction)
   - Location: `/Users/badlogic/workspaces/sitegeist/src/prompts/prompts.ts`
   - Main system prompt for the agent
+  - Complete rewrite focusing on behavioral guidance and cross-cutting concerns
+  - Removed tool descriptions (already in individual tool prompts)
+  - Removed execution context details (in runtime provider descriptions)
+  - Removed verbose workflow examples (condensed to pattern + example + critical insight)
+  - Clarified artifacts dual-use: tool (YOU author) vs storage functions (CODE stores)
+  - Emphasized critical rules: tool outputs hidden, check skills before custom DOM code
+  - Added concrete pattern examples with clear separation of concerns
 
 - [x] **ask_user_which_element** - 394 → 112 tokens (72% reduction)
   - Location: `/Users/badlogic/workspaces/sitegeist/src/prompts/prompts.ts`
