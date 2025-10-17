@@ -25,7 +25,8 @@ export class SitegeistUserMessage extends LitElement {
 		const content =
 			typeof this.message.content === "string"
 				? this.message.content
-				: (this.message.content.find((c) => c.type === "text") as { type: "text"; text: string } | undefined)?.text || "";
+				: (this.message.content.find((c) => c.type === "text") as { type: "text"; text: string } | undefined)
+						?.text || "";
 
 		return html`
 			<div class="flex justify-start ml-4">
@@ -36,7 +37,8 @@ export class SitegeistUserMessage extends LitElement {
 							? html`
 								<div class="mt-3 flex flex-wrap gap-2">
 									${this.message.attachments.map(
-										(attachment: Attachment) => html` <attachment-tile .attachment=${attachment}></attachment-tile> `,
+										(attachment: Attachment) =>
+											html` <attachment-tile .attachment=${attachment}></attachment-tile> `,
 									)}
 								</div>
 							`

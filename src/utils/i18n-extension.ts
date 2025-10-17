@@ -81,8 +81,7 @@ declare module "@mariozechner/mini-lit" {
 const sitegeistTranslations = {
 	en: {
 		"Permission request failed": "Permission request failed",
-		"JavaScript Execution Permission Required":
-			"JavaScript Execution Permission Required",
+		"JavaScript Execution Permission Required": "JavaScript Execution Permission Required",
 		"This extension needs permission to execute JavaScript code on web pages":
 			"This extension needs permission to execute JavaScript code on web pages",
 		"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
@@ -144,15 +143,15 @@ const sitegeistTranslations = {
 		"Older than 30 days": "Older than 30 days",
 		"Older than 90 days": "Older than 90 days",
 		"Search sessions...": "Search sessions...",
-		"Total: {count} sessions · {messages} messages · ${cost}": "Total: {count} sessions · {messages} messages · ${cost}",
+		"Total: {count} sessions · {messages} messages · ${cost}":
+			"Total: {count} sessions · {messages} messages · ${cost}",
 		"Open tabs": "Open tabs",
 		"Waiting for selection": "Waiting for selection",
 		"Preparing element selector...": "Preparing element selector...",
 	},
 	de: {
 		"Permission request failed": "Berechtigungsanfrage fehlgeschlagen",
-		"JavaScript Execution Permission Required":
-			"JavaScript-Ausführungsberechtigung erforderlich",
+		"JavaScript Execution Permission Required": "JavaScript-Ausführungsberechtigung erforderlich",
 		"This extension needs permission to execute JavaScript code on web pages":
 			"Diese Erweiterung benötigt die Berechtigung, JavaScript-Code auf Webseiten auszuführen",
 		"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
@@ -208,13 +207,15 @@ const sitegeistTranslations = {
 		Export: "Exportieren",
 		"No sessions older than {days} days": "Keine Sitzungen älter als {days} Tage",
 		"Delete {count} sessions older than {days} days?": "{count} Sitzungen älter als {days} Tage löschen?",
-		"Failed to delete sessions. Check console for details.": "Löschen fehlgeschlagen. Prüfen Sie die Konsole für Details.",
+		"Failed to delete sessions. Check console for details.":
+			"Löschen fehlgeschlagen. Prüfen Sie die Konsole für Details.",
 		"Delete Old": "Löschen",
 		"Older than 7 days": "Älter als 7 Tage",
 		"Older than 30 days": "Älter als 30 Tage",
 		"Older than 90 days": "Älter als 90 Tage",
 		"Search sessions...": "Sitzungen durchsuchen...",
-		"Total: {count} sessions · {messages} messages · ${cost}": "Gesamt: {count} Sitzungen · {messages} Nachrichten · ${cost}",
+		"Total: {count} sessions · {messages} messages · ${cost}":
+			"Gesamt: {count} Sitzungen · {messages} Nachrichten · ${cost}",
 		"Open tabs": "Offene Tabs",
 		"Waiting for selection": "Warte auf Auswahl",
 		"Preparing element selector...": "Bereite Element-Auswahl vor...",

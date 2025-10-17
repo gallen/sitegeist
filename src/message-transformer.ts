@@ -1,6 +1,5 @@
 import type { Message } from "@mariozechner/pi-ai";
 import type { AppMessage } from "@mariozechner/pi-web-ui";
-import type { ContinueMessage } from "./messages/custom-messages.js";
 import type { NavigationMessage } from "./messages/NavigationMessage.js";
 import { getSitegeistStorage } from "./storage/app-storage.js";
 
@@ -76,9 +75,7 @@ function reorderMessages(messages: Message[]): Message[] {
 
 // Custom message transformer for browser extension
 // Handles navigation messages and app-specific message types
-export async function browserMessageTransformer(
-	messages: AppMessage[],
-): Promise<Message[]> {
+export async function browserMessageTransformer(messages: AppMessage[]): Promise<Message[]> {
 	const skillsRepo = getSitegeistStorage().skills;
 	const transformed = [];
 
@@ -88,38 +85,20 @@ export async function browserMessageTransformer(
 			continue;
 		}
 
-		// Handle continue messages
-		if ((m as any).type === "continue") {
-			// Convert ContinueMessage to user message telling LLM to continue
-			transformed.push({
-				role: "user",
-				content: "Continue with the next step of your task. Do not stop.",
-			} as Message);
-			continue;
-		}
-
 		// Filter non-LLM messages
-		if (
-			m.role !== "user" &&
-			m.role !== "assistant" &&
-			m.role !== "toolResult" &&
-			m.role !== "navigation"
-		) {
+		if (m.role !== "user" && m.role !== "assistant" && m.role !== "toolResult" && m.role !== "navigation") {
 			continue;
 		}
 
 		if (m.role === "navigation") {
 			const nav = m as NavigationMessage;
-			const tabInfo =
-				nav.tabIndex !== undefined ? ` (tab ${nav.tabIndex})` : "";
+			const tabInfo = nav.tabIndex !== undefined ? ` (tab ${nav.tabIndex})` : "";
 
 			// Load skills matching this navigation URL
 			const skills = await skillsRepo.getSkillsForUrl(nav.url);
 			let skillsInfo = "";
 			if (skills.length > 0) {
-				const skillNames = skills
-					.map((s) => `${s.name}: ${s.shortDescription}`)
-					.join("\n");
+				const skillNames = skills.map((s) => `${s.name}: ${s.shortDescription}`).join("\n");
 				skillsInfo = `\nSkills: ${skillNames}`;
 			} else {
 				skillsInfo = "\nSkills: none found";
@@ -137,8 +116,10 @@ ${skillsInfo}
 </skills>
 
 <instructions>
-DO NOT STOP - This is informational only. CONTINUE IMMEDIATELY with the next step of your multi-step workflow. This message does NOT mean you should wait for user input.
-DO NOT REPEAT THIS MESSAGE BACK TO THE USER!</instructions>`,
+- READ THE SKILLS IMMEDIATELY BEFORE ANSWERING THE USER IF YOU HAVE NOT DONE SO ALREADY!
+- DO NOT STOP - This is informational only. CONTINUE IMMEDIATELY with the next step of your multi-step workflow. This message does NOT mean you should wait for user input.
+- DO NOT REPEAT THIS MESSAGE BACK TO THE USER!
+</instructions>`,
 			} as Message);
 		} else if (m.role === "user") {
 			const { attachments, ...rest } = m as any;

@@ -27,15 +27,15 @@ import {
 	registerNavigationRenderer,
 } from "./messages/NavigationMessage.js";
 import { registerUserMessageRenderer } from "./messages/UserMessageRenderer.js";
-import {
-	createWelcomeMessage,
-	registerWelcomeRenderer,
-} from "./messages/WelcomeMessage.js";
-import { SYSTEM_PROMPT } from "./prompts/tool-prompts.js";
+import { createWelcomeMessage, registerWelcomeRenderer } from "./messages/WelcomeMessage.js";
+import { SYSTEM_PROMPT } from "./prompts/prompts.js";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import { DebuggerTool } from "./tools/debugger.js";
-import { BrowserJavaScriptTool, SelectElementTool, skillTool } from "./tools/index.js";
+import { SelectElementTool, skillTool } from "./tools/index.js";
+import { NativeInputEventsRuntimeProvider } from "./tools/NativeInputEventsRuntimeProvider.js";
 import { isToolNavigating, NavigateTool } from "./tools/navigate.js";
+import { createJavaScriptReplTool } from "./tools/repl/javascript-repl.js";
+import { BrowserJsRuntimeProvider, NavigateRuntimeProvider } from "./tools/repl/runtime-providers.js";
 import * as port from "./utils/port.js";
 import "./utils/i18n-extension.js";
 import "./utils/live-reload.js";
@@ -91,9 +91,7 @@ const generateTitle = (messages: AppMessage[]): string => {
 
 const shouldSaveSession = (messages: AppMessage[]): boolean => {
 	const hasUserMsg = messages.some((m: AppMessage) => m.role === "user");
-	const hasAssistantMsg = messages.some(
-		(m: AppMessage) => m.role === "assistant",
-	);
+	const hasAssistantMsg = messages.some((m: AppMessage) => m.role === "assistant");
 	return hasUserMsg && hasAssistantMsg;
 };
 
@@ -153,8 +151,7 @@ const saveSession = async () => {
 		preview = preview.substring(0, 2048);
 
 		// Preserve createdAt if session already exists
-		const existingMetadata =
-			await storage.sessions.getMetadata(currentSessionId);
+		const existingMetadata = await storage.sessions.getMetadata(currentSessionId);
 		const createdAt = existingMetadata?.createdAt || new Date().toISOString();
 
 		const metadata = {
@@ -169,12 +166,7 @@ const saveSession = async () => {
 			preview,
 		};
 
-		await storage.sessions.saveSession(
-			currentSessionId,
-			state,
-			metadata,
-			currentTitle,
-		);
+		await storage.sessions.saveSession(currentSessionId, state, metadata, currentTitle);
 	} catch (err) {
 		console.error("Failed to save session:", err);
 	}
@@ -186,10 +178,7 @@ const updateUrl = (sessionId: string) => {
 	window.history.replaceState({}, "", url);
 };
 
-const createAgent = async (
-	initialState?: Partial<AgentState>,
-	shouldSave = true,
-) => {
+const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true) => {
 	if (agentUnsubscribe) {
 		agentUnsubscribe();
 	}
@@ -212,7 +201,6 @@ const createAgent = async (
 
 		if (savedProvider && savedModelId) {
 			try {
-				// biome-ignore lint/suspicious/noExplicitAny: providers are typed as string literal union
 				defaultModel = getModel(savedProvider as any, savedModelId);
 			} catch (error) {
 				console.warn("Failed to restore saved model, using default:", error);
@@ -239,12 +227,12 @@ const createAgent = async (
 
 				// Save last used model when it changes
 				if (event.state.model) {
-					storage.settings.set("lastUsedModel.provider", event.state.model.provider).catch(err =>
-						console.error("Failed to save lastUsedModel.provider:", err)
-					);
-					storage.settings.set("lastUsedModel.modelId", event.state.model.id).catch(err =>
-						console.error("Failed to save lastUsedModel.modelId:", err)
-					);
+					storage.settings
+						.set("lastUsedModel.provider", event.state.model.provider)
+						.catch((err) => console.error("Failed to save lastUsedModel.provider:", err));
+					storage.settings
+						.set("lastUsedModel.modelId", event.state.model.id)
+						.catch((err) => console.error("Failed to save lastUsedModel.modelId:", err));
 				}
 
 				// Generate title after first successful response
@@ -265,10 +253,7 @@ const createAgent = async (
 						})
 						.then((lockResponse) => {
 							if (!lockResponse.success) {
-								console.warn(
-									"Failed to acquire lock for newly created session",
-									currentSessionId,
-								);
+								console.warn("Failed to acquire lock for newly created session", currentSessionId);
 							}
 						});
 					updateUrl(currentSessionId);
@@ -299,12 +284,7 @@ const createAgent = async (
 				active: true,
 				currentWindow: true,
 			});
-			if (
-				!tab?.url ||
-				tab.url.startsWith("chrome-extension://") ||
-				tab.url.startsWith("moz-extension://")
-			)
-				return;
+			if (!tab?.url || tab.url.startsWith("chrome-extension://") || tab.url.startsWith("moz-extension://")) return;
 
 			// Find most recent navigation message (reverse iteration for compatibility)
 			let lastNav: NavigationMessage | undefined;
@@ -317,22 +297,13 @@ const createAgent = async (
 
 			// Only add if URL changed
 			if (!lastNav || lastNav.url !== tab.url) {
-				const navMessage = createNavigationMessage(
-					tab.url,
-					tab.title || "Untitled",
-					tab.favIconUrl,
-					tab.index,
-				);
+				const navMessage = createNavigationMessage(tab.url, tab.title || "Untitled", tab.favIconUrl, tab.index);
 				agent.appendMessage(navMessage);
 			}
 		},
-		toolsFactory: (agent, _agentInterface, artifactsPanel) => {
-			const navigateTool = new NavigateTool(agent);
+		toolsFactory: (_agent, _agentInterface, _artifactsPanel, runtimeProvidersFactory) => {
+			const navigateTool = new NavigateTool();
 			const selectElementTool = new SelectElementTool();
-			const browserJavaScriptTool = new BrowserJavaScriptTool(
-				artifactsPanel,
-				agent,
-			);
 
 			// Create extract_document tool with CORS proxy from settings (loaded above)
 			const extractDocumentTool = createExtractDocumentTool();
@@ -340,18 +311,37 @@ const createAgent = async (
 				extractDocumentTool.corsProxyUrl = `${corsProxyUrl}/?`;
 			}
 
-			// biome-ignore lint/suspicious/noExplicitAny: fine
+			// Create browser_repl tool with browserjs() and navigate() helpers
+			// This REPLACES browser_javascript tool (see plan.md line 288-290)
+			const replTool = createJavaScriptReplTool();
+			replTool.sandboxUrlProvider = () => chrome.runtime.getURL("sandbox.html");
+
+			// Extend base providers with browser orchestration capabilities
+			replTool.runtimeProvidersFactory = () => {
+				// Providers that should be available in page context via browserjs()
+				const pageProviders = [
+					...runtimeProvidersFactory(), // attachments + artifacts from ChatPanel
+					new NativeInputEventsRuntimeProvider(), // trusted browser events
+				];
+
+				return [
+					...pageProviders, // Make them available in REPL context too
+					new BrowserJsRuntimeProvider(pageProviders), // Pass to page context
+					new NavigateRuntimeProvider(navigateTool),
+				];
+			};
+
 			const tools: AgentTool<any, any>[] = [
 				navigateTool,
 				selectElementTool,
-				browserJavaScriptTool,
+				replTool, // Replaces browser_javascript
 				skillTool,
 				extractDocumentTool,
 			];
 
 			// Conditionally add debugger tool if enabled
 			if (debuggerModeEnabled) {
-				const debuggerTool = new DebuggerTool(agent);
+				const debuggerTool = new DebuggerTool();
 				tools.push(debuggerTool);
 			}
 
@@ -370,13 +360,10 @@ const createAgent = async (
 			chatPanel.agentInterface.setAutoScroll(false);
 
 			// Re-enable auto-scroll on first user message
-			// biome-ignore lint: Need let for closure to avoid temporal dead zone
 			let unsubscribe: (() => void) | undefined;
 			unsubscribe = agent.subscribe((event) => {
 				if (event.type === "state-update") {
-					const hasUserMsg = event.state.messages.some(
-						(m) => m.role === "user",
-					);
+					const hasUserMsg = event.state.messages.some((m) => m.role === "user");
 					if (hasUserMsg && unsubscribe) {
 						chatPanel.agentInterface?.setAutoScroll(true);
 						unsubscribe();
@@ -458,19 +445,9 @@ const renderApp = () => {
 										},*/
 										onKeyDown: async (e: KeyboardEvent) => {
 											if (e.key === "Enter") {
-												const newTitle = (
-													e.target as HTMLInputElement
-												).value.trim();
-												if (
-													newTitle &&
-													newTitle !== currentTitle &&
-													storage.sessions &&
-													currentSessionId
-												) {
-													await storage.sessions.updateTitle(
-														currentSessionId,
-														newTitle,
-													);
+												const newTitle = (e.target as HTMLInputElement).value.trim();
+												if (newTitle && newTitle !== currentTitle && storage.sessions && currentSessionId) {
+													await storage.sessions.updateTitle(currentSessionId, newTitle);
 													currentTitle = newTitle;
 												}
 												isEditingTitle = false;
@@ -488,9 +465,7 @@ const renderApp = () => {
 										isEditingTitle = true;
 										renderApp();
 										requestAnimationFrame(() => {
-											const input = document.body.querySelector(
-												'input[type="text"]',
-											) as HTMLInputElement;
+											const input = document.body.querySelector('input[type="text"]') as HTMLInputElement;
 											if (input) {
 												input.focus();
 												input.select();
@@ -510,12 +485,7 @@ const renderApp = () => {
 						variant: "ghost",
 						size: "sm",
 						children: icon(Settings, "sm"),
-						onClick: () =>
-							SettingsDialog.open([
-								new SkillsTab(),
-								new ApiKeysTab(),
-								new ProxyTab(),
-							]),
+						onClick: () => SettingsDialog.open([new SkillsTab(), new ApiKeysTab(), new ProxyTab()]),
 						title: "Settings",
 					})}
 				</div>
@@ -549,12 +519,7 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
 		!tab.url.startsWith("moz-extension://") &&
 		!isToolNavigating()
 	) {
-		const navMessage = createNavigationMessage(
-			tab.url,
-			tab.title || "Untitled",
-			tab.favIconUrl,
-			tab.index,
-		);
+		const navMessage = createNavigationMessage(tab.url, tab.title || "Untitled", tab.favIconUrl, tab.index);
 		agent.queueMessage(navMessage);
 		console.log("Queued navigation message for tab switch to", tab.url);
 	}
@@ -575,12 +540,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 		!tab.url.startsWith("moz-extension://") &&
 		!isToolNavigating()
 	) {
-		const navMessage = createNavigationMessage(
-			tab.url,
-			tab.title || "Untitled",
-			tab.favIconUrl,
-			tab.index,
-		);
+		const navMessage = createNavigationMessage(tab.url, tab.title || "Untitled", tab.favIconUrl, tab.index);
 		agent.queueMessage(navMessage);
 		console.log("Queued navigation message for tab switch to", tab.url);
 	}
@@ -589,21 +549,25 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 // ============================================================================
 // KEYBOARD SHORTCUTS
 // ============================================================================
-window.addEventListener("keydown", (e) => {
-	// Escape key to abort streaming - works globally in sidepanel
-	// Use capturing phase to intercept before MessageEditor handles it
-	if (e.key === "Escape" && agent?.state.isStreaming) {
-		e.preventDefault();
-		e.stopPropagation();
-		agent.abort();
-	}
+window.addEventListener(
+	"keydown",
+	(e) => {
+		// Escape key to abort streaming - works globally in sidepanel
+		// Use capturing phase to intercept before MessageEditor handles it
+		if (e.key === "Escape" && agent?.state.isStreaming) {
+			e.preventDefault();
+			e.stopPropagation();
+			agent.abort();
+		}
 
-	// Cmd+U (Mac) or Ctrl+U (Windows/Linux) to open debug page
-	if ((e.metaKey || e.ctrlKey) && e.key === "u") {
-		e.preventDefault();
-		window.location.href = "./debug.html";
-	}
-}, true); // Use capture phase to intercept Escape before it reaches MessageEditor
+		// Cmd+U (Mac) or Ctrl+U (Windows/Linux) to open debug page
+		if ((e.metaKey || e.ctrlKey) && e.key === "u") {
+			e.preventDefault();
+			window.location.href = "./debug.html";
+		}
+	},
+	true,
+); // Use capture phase to intercept Escape before it reaches MessageEditor
 
 // ============================================================================
 // TEST STEPS FROM DEBUGGER.TS
@@ -618,14 +582,11 @@ async function testSteps(): Promise<boolean> {
 
 	// Handle test prompts - create temporary session without saving
 	try {
-		const testSteps = JSON.parse(
-			decodeURIComponent(testStepsParam),
-		) as string[];
+		const testSteps = JSON.parse(decodeURIComponent(testStepsParam)) as string[];
 
 		// Set model if specified
 		let initialState: Partial<AgentState> | undefined;
 		if (testProvider && testModel) {
-			// biome-ignore lint/suspicious/noExplicitAny: fine
 			const model = getModel(testProvider as any, testModel);
 			if (model) {
 				initialState = {

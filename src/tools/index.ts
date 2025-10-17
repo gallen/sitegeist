@@ -1,12 +1,4 @@
-import {
-	BashRenderer,
-	CalculateRenderer,
-	createJavaScriptReplTool,
-	GetCurrentTimeRenderer,
-	javascriptReplTool,
-	registerToolRenderer,
-} from "@mariozechner/pi-web-ui";
-import "./browser-javascript.js"; // Import for side effects (registers renderer)
+import { BashRenderer, CalculateRenderer, GetCurrentTimeRenderer, registerToolRenderer } from "@mariozechner/pi-web-ui";
 import "./skill.js";
 import "./select-element.js"; // Import for side effects (registers renderer)
 
@@ -15,12 +7,8 @@ registerToolRenderer("calculate", new CalculateRenderer());
 registerToolRenderer("get_current_time", new GetCurrentTimeRenderer());
 registerToolRenderer("bash", new BashRenderer());
 
-// Re-export for convenience
-export { createJavaScriptReplTool, javascriptReplTool };
-export {
-	BrowserJavaScriptTool,
-	browserJavaScriptTool,
-	requestUserScriptsPermission,
-} from "./browser-javascript.js";
-export { skillTool } from "./skill.js";
+// Export sitegeist-specific REPL tool instead of web-ui default
+export { createJavaScriptReplTool, javascriptReplTool } from "./repl/javascript-repl.js";
+export { requestUserScriptsPermission } from "./repl/userscripts-helpers.js";
 export { SelectElementTool, selectElementTool } from "./select-element.js";
+export { skillTool } from "./skill.js";

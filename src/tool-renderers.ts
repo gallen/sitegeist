@@ -1,7 +1,4 @@
-import type {
-	ToolCall,
-	ToolResultMessage as ToolResultMessageType,
-} from "@mariozechner/pi-ai";
+import type { ToolCall, ToolResultMessage as ToolResultMessageType } from "@mariozechner/pi-ai";
 import {
 	ArtifactsToolRenderer,
 	BashRenderer,
@@ -12,7 +9,6 @@ import {
 import { html, LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
 
-import "./tools/browser-javascript.js";
 import "./tools/skill.js";
 
 // Register built-in pi-web-ui renderers for demo
@@ -24,7 +20,6 @@ registerToolRenderer("artifacts", new ArtifactsToolRenderer());
 interface ToolTestCase {
 	name: string;
 	label: string;
-	// biome-ignore lint/suspicious/noExplicitAny: fine
 	params: any;
 	result?: ToolResultMessageType;
 	isStreaming?: boolean;
@@ -35,7 +30,6 @@ interface ToolTestCase {
 @customElement("tool-renderer-viewer")
 class ToolRendererViewer extends LitElement {
 	@state() private selectedTool = "skill";
-	@state() private selectedState = "params-only";
 
 	protected createRenderRoot() {
 		return this;
@@ -66,12 +60,10 @@ class ToolRendererViewer extends LitElement {
 						data: {
 							name: "youtube-essentials",
 							domainPatterns: ["youtube.com", "youtu.be"],
-							shortDescription:
-								"YouTube video player control and transcript extraction",
+							shortDescription: "YouTube video player control and transcript extraction",
 							description: "Control video playback and extract transcripts",
 							examples: "yt.pause()\\nyt.getTranscript()",
-							library:
-								"window.yt = { pause: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, getTranscript: () => {} }",
 						},
 					},
 				},
@@ -83,12 +75,10 @@ class ToolRendererViewer extends LitElement {
 						data: {
 							name: "youtube-essentials",
 							domainPatterns: ["youtube.com", "youtu.be"],
-							shortDescription:
-								"YouTube video player control and transcript extraction",
+							shortDescription: "YouTube video player control and transcript extraction",
 							description: "Control video playback and extract transcripts",
 							examples: "yt.pause()\\nyt.getTranscript()",
-							library:
-								"window.yt = { pause: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, getTranscript: () => {} }",
 						},
 					},
 					result: {
@@ -100,13 +90,11 @@ class ToolRendererViewer extends LitElement {
 						details: {
 							name: "youtube-essentials",
 							domainPatterns: ["youtube.com", "youtu.be"],
-							shortDescription:
-								"YouTube video player control and transcript extraction",
+							shortDescription: "YouTube video player control and transcript extraction",
 							description:
 								"Control video playback and extract transcripts. Use `yt.pause()` to pause the current video, and `yt.getTranscript()` to extract the full transcript text.",
 							examples: "yt.pause()\\nyt.getTranscript()",
-							library:
-								"window.yt = { pause: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, getTranscript: () => {} }",
 							createdAt: "2025-10-07T12:00:00Z",
 							lastUpdated: "2025-10-07T12:00:00Z",
 						},
@@ -158,8 +146,7 @@ class ToolRendererViewer extends LitElement {
 						name: "youtube-essentials",
 						data: {
 							description: "Updated description for YouTube controls",
-							library:
-								"window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
 						},
 					},
 				},
@@ -171,8 +158,7 @@ class ToolRendererViewer extends LitElement {
 						name: "youtube-essentials",
 						data: {
 							description: "Updated description for YouTube controls",
-							library:
-								"window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
 						},
 					},
 					result: {
@@ -184,12 +170,10 @@ class ToolRendererViewer extends LitElement {
 						details: {
 							name: "youtube-essentials",
 							domainPatterns: ["youtube.com", "youtu.be"],
-							shortDescription:
-								"YouTube video player control and transcript extraction",
+							shortDescription: "YouTube video player control and transcript extraction",
 							description: "Updated description for YouTube controls",
 							examples: "yt.pause()\\nyt.getTranscript()",
-							library:
-								"window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, play: () => {}, getTranscript: () => {} }",
 							createdAt: "2025-10-07T12:00:00Z",
 							lastUpdated: "2025-10-07T13:00:00Z",
 						},
@@ -235,13 +219,11 @@ class ToolRendererViewer extends LitElement {
 						details: {
 							name: "youtube-essentials",
 							domainPatterns: ["youtube.com", "youtu.be"],
-							shortDescription:
-								"YouTube video player control and transcript extraction",
+							shortDescription: "YouTube video player control and transcript extraction",
 							description:
 								"Control video playback and extract transcripts. Use `yt.pause()` to pause the current video, and `yt.getTranscript()` to extract the full transcript text.",
 							examples: "yt.pause()\\nyt.getTranscript()",
-							library:
-								"window.yt = { pause: () => {}, getTranscript: () => {} }",
+							library: "window.yt = { pause: () => {}, getTranscript: () => {} }",
 							createdAt: "2025-10-07T12:00:00Z",
 							lastUpdated: "2025-10-07T12:00:00Z",
 						},
@@ -279,8 +261,7 @@ class ToolRendererViewer extends LitElement {
 						role: "toolResult",
 						toolCallId: "test-list-skills",
 						toolName: "skill",
-						output:
-							"youtube-essentials: YouTube controls\\ngithub-helper: GitHub automation",
+						output: "youtube-essentials: YouTube controls\\ngithub-helper: GitHub automation",
 						isError: false,
 						details: {
 							skills: [
@@ -1028,9 +1009,7 @@ class ToolRendererViewer extends LitElement {
 									<h2 class="text-lg font-semibold mb-4 text-foreground">
 										${this.selectedTool} Examples
 									</h2>
-									${currentCases.map((testCase) =>
-										this.renderToolExample(this.selectedTool, testCase),
-									)}
+									${currentCases.map((testCase) => this.renderToolExample(this.selectedTool, testCase))}
 								</div>
 							</div>
 						</div>

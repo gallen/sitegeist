@@ -1,17 +1,6 @@
-import {
-	html,
-	i18n,
-	icon,
-	Diff,
-	type TemplateResult,
-} from "@mariozechner/mini-lit";
+import { Diff, html, i18n, icon, type TemplateResult } from "@mariozechner/mini-lit";
 import "@mariozechner/mini-lit/dist/MarkdownBlock.js";
-import { createRef, ref } from "lit/directives/ref.js";
-import {
-	type AgentTool,
-	StringEnum,
-	type ToolResultMessage,
-} from "@mariozechner/pi-ai";
+import { type AgentTool, StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
 import {
 	registerToolRenderer,
 	renderCollapsibleHeader,
@@ -21,10 +10,11 @@ import {
 	type ToolRenderResult,
 } from "@mariozechner/pi-web-ui";
 import { type Static, Type } from "@sinclair/typebox";
+import { createRef, ref } from "lit/directives/ref.js";
 import { Sparkles } from "lucide";
 import { DomainPill } from "../components/DomainPill.js";
 import { SkillPill } from "../components/SkillPill.js";
-import { SKILL_TOOL_DESCRIPTION } from "../prompts/tool-prompts.js";
+import { SKILL_TOOL_DESCRIPTION } from "../prompts/prompts.js";
 import { getSitegeistStorage } from "../storage/app-storage.js";
 import type { Skill } from "../storage/stores/skills-store.js";
 
@@ -39,8 +29,7 @@ const defaultSkills: Skill[] = [
 	{
 		name: "google",
 		domainPatterns: ["google.com", "google.*/search*"],
-		shortDescription:
-			"Extract Google search results with titles, URLs, snippets, and metadata",
+		shortDescription: "Extract Google search results with titles, URLs, snippets, and metadata",
 		description:
 			"Extracts structured data from Google search result pages.\n\n**Returns:**\n- Array of search results with title, URL, snippet, and position\n- Total result count estimate\n- Related searches\n- Featured snippets when available\n\n**Limitations:**\n- Only works on search result pages (not Google homepage)\n- May not capture all rich result types (shopping, images, etc.)",
 		examples:
@@ -53,8 +42,7 @@ const defaultSkills: Skill[] = [
 	{
 		name: "google-sheets",
 		domainPatterns: ["docs.google.com/spreadsheets/**"],
-		shortDescription:
-			"Complete Google Sheets automation - read/write cells, format, and manipulate data",
+		shortDescription: "Complete Google Sheets automation - read/write cells, format, and manipulate data",
 		description:
 			'Comprehensive Google Sheets automation with cell/range operations, formatting (bold, italic, underline, alignment, colors, number formats), and data manipulation. Works on both single cells and ranges.\n\n**Key Features:**\n- Read and write individual cells or ranges\n- Format cells with text styling, colors, alignment, and number formats  \n- Set document title\n- Clear entire sheet\n- Get available color palette\n\n**Formatting Options:**\n- Text: bold, italic, underline, strikethrough\n- Alignment: left, center, right\n- Colors: backgroundColor and textColor (use color indices from getAvailableColors())\n- Number formats: currency, percentage\n\n**Notes:**\n- All functions work on macOS (uses Meta/Cmd key)\n- Color buttons may be hidden in "More" menu - automatically handled\n- Formatting uses keyboard shortcuts and native browser events for reliability\n- DOM manipulation used for name box to avoid input conflicts',
 		createdAt: "2025-10-12T21:37:37.451Z",
@@ -67,8 +55,7 @@ const defaultSkills: Skill[] = [
 	{
 		name: "linkedin-engagement",
 		domainPatterns: ["linkedin.com/**"],
-		shortDescription:
-			"Automate LinkedIn engagement - find your posts and reply to comments",
+		shortDescription: "Automate LinkedIn engagement - find your posts and reply to comments",
 		description:
 			"# LinkedIn Engagement Automation\n\n**IMPORTANT FOR AI:** Multi-step workflow. You orchestrate using navigate tool + browser_javascript/javascript_repl.\n\n## Workflow\n\n### Step 1: Navigate to Activity & Collect Posts\n1. AI: `navigate` to activity page\n2. AI: `browser_javascript` → `linkedin.collectPostsWithPagination(5)` → saves to artifact\n\n### Step 2: For Each Post - Get Comments\n1. AI: `navigate` to post URL\n2. AI: `browser_javascript` → `linkedin.getPostWithCommentTree()` → saves comment tree to artifact\n\n### Step 3: Find Unanswered & Generate Report\nAI: `browser_javascript` (any LinkedIn page) → Load artifact, use `linkedin.findUnansweredComments()`, YOU generate 3 reply options per unanswered comment based on the post and comment context, create markdown report with all options\n\n### Step 4: Post Replies (if user confirms)\n1. AI: `navigate` to post URL\n2. AI: `browser_javascript` → `linkedin.postReply(commentId, text)`\n\n## Functions\n\n### `linkedin.getUsername()`\nReturns username string.\n\n### `linkedin.collectPostsWithPagination(count)`\nReturns array of posts with comments. Auto-filters reposts.\n\n### `linkedin.getPostWithCommentTree()`\nReturns `{ postUrl, postText, totalComments, comments }` where comments is a tree with nested replies. Auto-expands hidden replies.\n\n### `linkedin.findUnansweredComments(commentTree)`\nReturns flat array of comments without your reply.\n\n### `linkedin.postReply(commentId, text)`\nPosts reply to comment. Returns `{ success, commentId, reply }`.",
 		createdAt: "2025-10-13T10:24:46.971Z",
@@ -81,8 +68,7 @@ const defaultSkills: Skill[] = [
 	{
 		name: "whatsapp",
 		domainPatterns: ["web.whatsapp.com"],
-		shortDescription:
-			"WhatsApp Web automation - list chats, open chats, read messages",
+		shortDescription: "WhatsApp Web automation - list chats, open chats, read messages",
 		description:
 			"Automate WhatsApp Web operations including listing chats, opening conversations, and reading messages.\n\n**Working Functions:**\n- `listChats()` - Get all chats with unread status (handles virtual scrolling)\n- `openChat(name)` - Search and open a chat by name\n- `getCurrentChat()` - Get current open chat info\n- `getMessages(filterFn)` - Collect messages with filter function control\n  - **Filter function**: `(message) => boolean` - called for each message (newest to oldest)\n  - Returns `true` to continue collecting, `false` to stop\n  - Messages have: `id`, `text`, `timestamp` (Date object), `date` (M/D/YYYY), `sender`, `fromMe`\n  - Automatically scrolls to bottom before/after collection\n- `getUnreadChats()` - Filter chats to show only unread\n- `sendMessage(msg)` - Send a message (use responsibly!)\n\n**Recent Improvements:**\n- ✅ Filter function design - you control when to stop\n- ✅ Collects messages from newest to oldest\n- ✅ Automatically scrolls to absolute bottom before and after\n- ✅ Proper timestamp extraction (removed redundant time field)\n\n**Known Limitations:**\n- `sendMessage()` has not been tested to avoid sending to real chats\n- Loading many messages can take time\n\n**Future Enhancements Needed:**\n- Add attachment handling\n- Test and improve sendMessage safety",
 		createdAt: "2025-10-11T20:43:49.023Z",
@@ -96,17 +82,12 @@ const defaultSkills: Skill[] = [
 		createdAt: "2025-10-08T10:18:31.396Z",
 		description:
 			"Comprehensive YouTube skill for automating video interactions and data extraction.\n\n**Features:**\n- Video playback controls (play/pause, seek, get time/duration)\n- Extract video information (title, channel, views, likes, description)\n- Get full transcripts with timestamps\n- Fetch comments with author, likes, and timestamps\n- Channel info and subscription management\n- Playlist navigation (next/previous video)\n- UI controls (theater mode, fullscreen, captions)\n- Search videos\n\n**Limitations:**\n- Some functions require being on a video page (e.g., playback controls, transcript)\n- Transcript requires manual loading (clicks button automatically)\n- Comments require scrolling to load (done automatically)\n- Description and transcript may take a moment to load",
-		domainPatterns: [
-			"youtube.com",
-			"www.youtube.com",
-			"m.youtube.com",
-			"youtu.be",
-		],
+		domainPatterns: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
 		examples:
 			"// Video Controls\nwindow.yt.playVideo();\nwindow.yt.pauseVideo();\nwindow.yt.seekTo(30);\nconst time = window.yt.getCurrentTime();\nconst duration = window.yt.getDuration();\n\n// Video Information\nconst info = window.yt.getVideoInfo();\nconst videoId = window.yt.getVideoId();\nconst desc = window.yt.getVideoDescription();\n\n// Transcript\nconst transcript = await window.yt.getTranscript();\n// Returns: [{timestamp: '0:00', text: '...'}, ...]\n\n// Comments\nconst comments = await window.yt.getComments(10);\n// Returns: [{author, text, likes, time}, ...]\n\n// Channel\nconst channelInfo = window.yt.getChannelInfo();\nwindow.yt.subscribeToChannel();\nwindow.yt.clickBellIcon();\n\n// Playlist Navigation\nwindow.yt.nextVideo();\nwindow.yt.previousVideo();\nconst playlist = window.yt.getPlaylistVideos();\n\n// UI Controls\nwindow.yt.toggleTheater();\nwindow.yt.toggleFullscreen();\nwindow.yt.toggleCaptions();\n\n// Search\nwindow.yt.searchVideos('Linus Tech Tips');",
 		lastUpdated: "2025-10-08T10:18:31.396Z",
 		library:
-			"window.yt = {\n  // ===== Video Controls =====\n  playVideo: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.play();\n    return 'Playing';\n  },\n\n  pauseVideo: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.pause();\n    return 'Paused';\n  },\n\n  seekTo: function(seconds) {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.currentTime = seconds;\n    return `Seeked to ${seconds}s`;\n  },\n\n  getCurrentTime: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    return video.currentTime;\n  },\n\n  getDuration: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    return video.duration;\n  },\n\n  // ===== Video Information =====\n  getVideoInfo: function() {\n    const title = document.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent?.trim();\n    const channel = document.querySelector('ytd-channel-name yt-formatted-string a')?.textContent?.trim();\n    const views = document.querySelector('ytd-video-view-count-renderer span.view-count')?.textContent?.trim();\n    const likes = document.querySelector('like-button-view-model button[aria-label*=\"like\"]')?.getAttribute('aria-label');\n    const uploadDate = document.querySelector('ytd-video-primary-info-renderer #info-strings yt-formatted-string')?.textContent?.trim();\n    \n    return { title, channel, views, likes, uploadDate };\n  },\n\n  getVideoId: function() {\n    const urlParams = new URLSearchParams(window.location.search);\n    return urlParams.get('v');\n  },\n\n  getVideoDescription: function() {\n    const descElement = document.querySelector('ytd-text-inline-expander yt-attributed-string');\n    return descElement?.textContent?.trim() || 'Description not loaded';\n  },\n\n  // ===== Transcript =====\n  getTranscript: async function() {\n    // Find and click transcript button if not already open\n    let segments = document.querySelectorAll('ytd-transcript-segment-renderer');\n    \n    if (segments.length === 0) {\n      const buttons = document.querySelectorAll('button, yt-button-shape button, ytd-button-renderer button');\n      let transcriptButton = null;\n      \n      for (let btn of buttons) {\n        const text = btn.textContent || btn.getAttribute('aria-label') || '';\n        if (text.includes('transcript') || text.includes('Transcript')) {\n          transcriptButton = btn;\n          break;\n        }\n      }\n      \n      if (transcriptButton) {\n        transcriptButton.click();\n        await new Promise(resolve => setTimeout(resolve, 1500));\n      }\n    }\n    \n    segments = document.querySelectorAll('ytd-transcript-segment-renderer');\n    \n    if (segments.length === 0) {\n      return 'Transcript not available for this video';\n    }\n    \n    const transcript = Array.from(segments).map(seg => ({\n      timestamp: seg.querySelector('.segment-timestamp')?.textContent?.trim(),\n      text: seg.querySelector('.segment-text')?.textContent?.trim()\n    }));\n    \n    return transcript;\n  },\n\n  // ===== Comments =====\n  getComments: async function(limit = 10) {\n    const commentsSection = document.querySelector('ytd-comments#comments');\n    if (commentsSection) {\n      commentsSection.scrollIntoView({ behavior: 'smooth' });\n      await new Promise(resolve => setTimeout(resolve, 2000));\n    }\n    \n    const commentRenderers = document.querySelectorAll('ytd-comment-thread-renderer');\n    \n    if (commentRenderers.length === 0) {\n      return 'Comments not loaded yet';\n    }\n    \n    const comments = Array.from(commentRenderers).slice(0, limit).map(renderer => {\n      const author = renderer.querySelector('#author-text span')?.textContent?.trim();\n      const text = renderer.querySelector('#content-text')?.textContent?.trim();\n      const likes = renderer.querySelector('#vote-count-middle')?.textContent?.trim();\n      const time = renderer.querySelector('.published-time-text a')?.textContent?.trim();\n      \n      return { author, text, likes, time };\n    });\n    \n    return comments;\n  },\n\n  // ===== Channel & Subscription =====\n  getChannelInfo: function() {\n    const channelName = document.querySelector('ytd-channel-name yt-formatted-string a')?.textContent?.trim();\n    const subscriberCount = document.querySelector('#owner-sub-count')?.textContent?.trim();\n    const channelUrl = document.querySelector('ytd-channel-name a')?.href;\n    \n    return {\n      name: channelName,\n      subscribers: subscriberCount,\n      url: channelUrl\n    };\n  },\n\n  subscribeToChannel: function() {\n    const subButton = document.querySelector('ytd-subscribe-button-renderer button, #subscribe-button button');\n    if (!subButton) return 'Subscribe button not found';\n    \n    subButton.click();\n    return 'Clicked subscribe button';\n  },\n\n  clickBellIcon: function() {\n    const bellButton = document.querySelector('ytd-subscription-notification-toggle-button-renderer-next button');\n    if (!bellButton) return 'Bell button not found';\n    \n    bellButton.click();\n    return 'Clicked notification bell';\n  },\n\n  // ===== Playlist & Queue =====\n  nextVideo: function() {\n    const nextButton = document.querySelector('.ytp-next-button');\n    if (!nextButton) return 'Next button not found';\n    \n    nextButton.click();\n    return 'Playing next video';\n  },\n\n  previousVideo: function() {\n    const prevButton = document.querySelector('.ytp-prev-button');\n    if (!prevButton) return 'Previous button not found';\n    \n    prevButton.click();\n    return 'Playing previous video';\n  },\n\n  addToPlaylist: function() {\n    const saveButtons = document.querySelectorAll('button[aria-label]');\n    let saveButton = null;\n    \n    for (let btn of saveButtons) {\n      const label = btn.getAttribute('aria-label');\n      if (label && (label.includes('Save') || label.includes('save'))) {\n        saveButton = btn;\n        break;\n      }\n    }\n    \n    if (!saveButton) return 'Save button not found';\n    \n    saveButton.click();\n    return 'Opened save to playlist menu';\n  },\n\n  getPlaylistVideos: function() {\n    const playlistItems = document.querySelectorAll('ytd-playlist-panel-renderer ytd-playlist-panel-video-renderer');\n    \n    if (playlistItems.length === 0) {\n      return 'Not in a playlist or playlist not visible';\n    }\n    \n    const videos = Array.from(playlistItems).map(item => ({\n      title: item.querySelector('#video-title')?.textContent?.trim(),\n      channel: item.querySelector('#channel-name')?.textContent?.trim(),\n      duration: item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim()\n    }));\n    \n    return videos;\n  },\n\n  // ===== UI Controls =====\n  toggleTheater: function() {\n    const theaterBtn = document.querySelector('.ytp-size-button');\n    if (!theaterBtn) return 'Theater button not found';\n    \n    theaterBtn.click();\n    return 'Theater mode toggled';\n  },\n\n  toggleFullscreen: function() {\n    const fullscreenBtn = document.querySelector('.ytp-fullscreen-button');\n    if (!fullscreenBtn) return 'Fullscreen button not found';\n    \n    fullscreenBtn.click();\n    return 'Fullscreen toggled';\n  },\n\n  toggleCaptions: function() {\n    const captionsBtn = document.querySelector('.ytp-subtitles-button');\n    if (!captionsBtn) return 'Captions button not found';\n    \n    captionsBtn.click();\n    return 'Captions toggled';\n  },\n\n  // ===== Search =====\n  searchVideos: function(query) {\n    const searchBox = document.querySelector('input[name=\"search_query\"]');\n    const searchForm = searchBox?.closest('form');\n    \n    if (!searchBox || !searchForm) {\n      return 'Search not available';\n    }\n    \n    searchBox.value = query;\n    searchForm.submit();\n    return `Searching for: ${query}`;\n  }\n};",
+			"window.yt = {\n  // ===== Video Controls =====\n  playVideo: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.play();\n    return 'Playing';\n  },\n\n  pauseVideo: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.pause();\n    return 'Paused';\n  },\n\n  seekTo: function(seconds) {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    video.currentTime = seconds;\n    return 'Seeked to ' + seconds + 's';\n  },\n\n  getCurrentTime: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    return video.currentTime;\n  },\n\n  getDuration: function() {\n    const video = document.querySelector('video');\n    if (!video) return 'No video found';\n    return video.duration;\n  },\n\n  // ===== Video Information =====\n  getVideoInfo: function() {\n    const title = document.querySelector('h1.ytd-watch-metadata yt-formatted-string')?.textContent?.trim();\n    const channel = document.querySelector('ytd-channel-name yt-formatted-string a')?.textContent?.trim();\n    const views = document.querySelector('ytd-video-view-count-renderer span.view-count')?.textContent?.trim();\n    const likes = document.querySelector('like-button-view-model button[aria-label*=\"like\"]')?.getAttribute('aria-label');\n    const uploadDate = document.querySelector('ytd-video-primary-info-renderer #info-strings yt-formatted-string')?.textContent?.trim();\n    \n    return { title, channel, views, likes, uploadDate };\n  },\n\n  getVideoId: function() {\n    const urlParams = new URLSearchParams(window.location.search);\n    return urlParams.get('v');\n  },\n\n  getVideoDescription: function() {\n    const descElement = document.querySelector('ytd-text-inline-expander yt-attributed-string');\n    return descElement?.textContent?.trim() || 'Description not loaded';\n  },\n\n  // ===== Transcript =====\n  getTranscript: async function() {\n    // Find and click transcript button if not already open\n    let segments = document.querySelectorAll('ytd-transcript-segment-renderer');\n    \n    if (segments.length === 0) {\n      const buttons = document.querySelectorAll('button, yt-button-shape button, ytd-button-renderer button');\n      let transcriptButton = null;\n      \n      for (let btn of buttons) {\n        const text = btn.textContent || btn.getAttribute('aria-label') || '';\n        if (text.includes('transcript') || text.includes('Transcript')) {\n          transcriptButton = btn;\n          break;\n        }\n      }\n      \n      if (transcriptButton) {\n        transcriptButton.click();\n        await new Promise(resolve => setTimeout(resolve, 1500));\n      }\n    }\n    \n    segments = document.querySelectorAll('ytd-transcript-segment-renderer');\n    \n    if (segments.length === 0) {\n      return 'Transcript not available for this video';\n    }\n    \n    const transcript = Array.from(segments).map(seg => ({\n      timestamp: seg.querySelector('.segment-timestamp')?.textContent?.trim(),\n      text: seg.querySelector('.segment-text')?.textContent?.trim()\n    }));\n    \n    return transcript;\n  },\n\n  // ===== Comments =====\n  getComments: async function(limit = 10) {\n    const commentsSection = document.querySelector('ytd-comments#comments');\n    if (commentsSection) {\n      commentsSection.scrollIntoView({ behavior: 'smooth' });\n      await new Promise(resolve => setTimeout(resolve, 2000));\n    }\n    \n    const commentRenderers = document.querySelectorAll('ytd-comment-thread-renderer');\n    \n    if (commentRenderers.length === 0) {\n      return 'Comments not loaded yet';\n    }\n    \n    const comments = Array.from(commentRenderers).slice(0, limit).map(renderer => {\n      const author = renderer.querySelector('#author-text span')?.textContent?.trim();\n      const text = renderer.querySelector('#content-text')?.textContent?.trim();\n      const likes = renderer.querySelector('#vote-count-middle')?.textContent?.trim();\n      const time = renderer.querySelector('.published-time-text a')?.textContent?.trim();\n      \n      return { author, text, likes, time };\n    });\n    \n    return comments;\n  },\n\n  // ===== Channel & Subscription =====\n  getChannelInfo: function() {\n    const channelName = document.querySelector('ytd-channel-name yt-formatted-string a')?.textContent?.trim();\n    const subscriberCount = document.querySelector('#owner-sub-count')?.textContent?.trim();\n    const channelUrl = document.querySelector('ytd-channel-name a')?.href;\n    \n    return {\n      name: channelName,\n      subscribers: subscriberCount,\n      url: channelUrl\n    };\n  },\n\n  subscribeToChannel: function() {\n    const subButton = document.querySelector('ytd-subscribe-button-renderer button, #subscribe-button button');\n    if (!subButton) return 'Subscribe button not found';\n    \n    subButton.click();\n    return 'Clicked subscribe button';\n  },\n\n  clickBellIcon: function() {\n    const bellButton = document.querySelector('ytd-subscription-notification-toggle-button-renderer-next button');\n    if (!bellButton) return 'Bell button not found';\n    \n    bellButton.click();\n    return 'Clicked notification bell';\n  },\n\n  // ===== Playlist & Queue =====\n  nextVideo: function() {\n    const nextButton = document.querySelector('.ytp-next-button');\n    if (!nextButton) return 'Next button not found';\n    \n    nextButton.click();\n    return 'Playing next video';\n  },\n\n  previousVideo: function() {\n    const prevButton = document.querySelector('.ytp-prev-button');\n    if (!prevButton) return 'Previous button not found';\n    \n    prevButton.click();\n    return 'Playing previous video';\n  },\n\n  addToPlaylist: function() {\n    const saveButtons = document.querySelectorAll('button[aria-label]');\n    let saveButton = null;\n    \n    for (let btn of saveButtons) {\n      const label = btn.getAttribute('aria-label');\n      if (label && (label.includes('Save') || label.includes('save'))) {\n        saveButton = btn;\n        break;\n      }\n    }\n    \n    if (!saveButton) return 'Save button not found';\n    \n    saveButton.click();\n    return 'Opened save to playlist menu';\n  },\n\n  getPlaylistVideos: function() {\n    const playlistItems = document.querySelectorAll('ytd-playlist-panel-renderer ytd-playlist-panel-video-renderer');\n    \n    if (playlistItems.length === 0) {\n      return 'Not in a playlist or playlist not visible';\n    }\n    \n    const videos = Array.from(playlistItems).map(item => ({\n      title: item.querySelector('#video-title')?.textContent?.trim(),\n      channel: item.querySelector('#channel-name')?.textContent?.trim(),\n      duration: item.querySelector('#text.ytd-thumbnail-overlay-time-status-renderer')?.textContent?.trim()\n    }));\n    \n    return videos;\n  },\n\n  // ===== UI Controls =====\n  toggleTheater: function() {\n    const theaterBtn = document.querySelector('.ytp-size-button');\n    if (!theaterBtn) return 'Theater button not found';\n    \n    theaterBtn.click();\n    return 'Theater mode toggled';\n  },\n\n  toggleFullscreen: function() {\n    const fullscreenBtn = document.querySelector('.ytp-fullscreen-button');\n    if (!fullscreenBtn) return 'Fullscreen button not found';\n    \n    fullscreenBtn.click();\n    return 'Fullscreen toggled';\n  },\n\n  toggleCaptions: function() {\n    const captionsBtn = document.querySelector('.ytp-subtitles-button');\n    if (!captionsBtn) return 'Captions button not found';\n    \n    captionsBtn.click();\n    return 'Captions toggled';\n  },\n\n  // ===== Search =====\n  searchVideos: function(query) {\n    const searchBox = document.querySelector('input[name=\"search_query\"]');\n    const searchForm = searchBox?.closest('form');\n    \n    if (!searchBox || !searchForm) {\n      return 'Search not available';\n    }\n    \n    searchBox.value = query;\n    searchForm.submit();\n    return 'Searching for: ' + query;\n  }\n};",
 		name: "youtube",
 		shortDescription:
 			"Complete YouTube automation - video controls, info extraction, transcripts, comments, playlists, and more",
@@ -133,20 +114,14 @@ const getSandboxUrl = () => {
  * Validate JavaScript syntax using sandboxed iframe (CSP-compliant).
  * Returns { valid: true } or { valid: false, error: string }
  */
-async function validateJavaScriptSyntax(
-	code: string,
-): Promise<{ valid: boolean; error?: string }> {
+async function validateJavaScriptSyntax(code: string): Promise<{ valid: boolean; error?: string }> {
 	const sandbox = new SandboxIframe();
 	sandbox.sandboxUrlProvider = getSandboxUrl;
 	sandbox.style.display = "none";
 	document.body.appendChild(sandbox);
 
 	try {
-		const result = await sandbox.execute(
-			`syntax-check-${Date.now()}`,
-			code,
-			[],
-		);
+		const result = await sandbox.execute(`syntax-check-${Date.now()}`, code, []);
 		sandbox.remove();
 
 		if (!result.success && result.error) {
@@ -165,13 +140,10 @@ const skillParamsSchema = Type.Object({
 	action: StringEnum(["get", "list", "create", "update", "patch", "delete"], {
 		description: "Action to perform",
 	}),
-	name: Type.Optional(
-		Type.String({ description: "Skill name (required for get/update/delete)" }),
-	),
+	name: Type.Optional(Type.String({ description: "Skill name (required for get/update/delete)" })),
 	url: Type.Optional(
 		Type.String({
-			description:
-				"URL to filter skills by domain (optional for list action, defaults to current tab URL)",
+			description: "URL to filter skills by domain (optional for list action, defaults to current tab URL)",
 		}),
 	),
 	includeLibraryCode: Type.Optional(
@@ -191,12 +163,10 @@ const skillParamsSchema = Type.Object({
 				description: "Brief one-line plain text description",
 			}),
 			description: Type.String({
-				description:
-					"Full markdown description (include gotchas/limitations, use markdown formatting)",
+				description: "Full markdown description (include gotchas/limitations, use markdown formatting)",
 			}),
 			examples: Type.String({
-				description:
-					"Plain JavaScript code examples (will be rendered in code block)",
+				description: "Plain JavaScript code examples (will be rendered in code block)",
 			}),
 			library: Type.String({ description: "JavaScript code to inject" }),
 		}),
@@ -268,9 +238,7 @@ export const skillTool: AgentTool<typeof skillParamsSchema, any> = {
 								details: {},
 							};
 						}
-						const list = available
-							.map((s) => `${s.name}: ${s.shortDescription}`)
-							.join("\n");
+						const list = available.map((s) => `${s.name}: ${s.shortDescription}`).join("\n");
 						return {
 							output: `Skill '${args.name}' not found. Available skills:\n${list}`,
 							isError: true,
@@ -299,25 +267,16 @@ export const skillTool: AgentTool<typeof skillParamsSchema, any> = {
 					// args.url === undefined -> use current tab URL (default)
 					// args.url === "" -> list ALL skills (no filtering)
 					// args.url === "https://..." -> use specified URL
-					const filterUrl =
-						args.url === undefined
-							? currentUrl
-							: args.url === ""
-								? undefined
-								: args.url;
+					const filterUrl = args.url === undefined ? currentUrl : args.url === "" ? undefined : args.url;
 
 					const skillList = await skillsRepo.listSkills(filterUrl);
 					if (skillList.length === 0) {
-						const msg = filterUrl
-							? "No skills found for specified domain."
-							: "No skills found.";
+						const msg = filterUrl ? "No skills found for specified domain." : "No skills found.";
 						return { output: msg, isError: false, details: { skills: [] } };
 					}
 
 					// Token-efficient list for LLM: name: short description
-					const llmOutput = skillList
-						.map((s) => `${s.name}: ${s.shortDescription}`)
-						.join("\n");
+					const llmOutput = skillList.map((s) => `${s.name}: ${s.shortDescription}`).join("\n");
 					return {
 						output: llmOutput,
 						isError: false,
@@ -402,9 +361,7 @@ export const skillTool: AgentTool<typeof skillParamsSchema, any> = {
 
 					// Validate library syntax if provided (using sandboxed iframe)
 					if (args.data.library) {
-						const validation = await validateJavaScriptSyntax(
-							args.data.library,
-						);
+						const validation = await validateJavaScriptSyntax(args.data.library);
 						if (!validation.valid) {
 							return {
 								output: `Syntax error in library: ${validation.error}`,
@@ -491,10 +448,7 @@ export const skillTool: AgentTool<typeof skillParamsSchema, any> = {
 								details: {},
 							};
 						}
-						updated.description = updated.description.replace(
-							old_string,
-							new_string,
-						);
+						updated.description = updated.description.replace(old_string, new_string);
 					}
 
 					if (args.patches.examples) {
@@ -574,11 +528,7 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 		params: SkillParams | undefined,
 		result: ToolResultMessage<SkillResultDetails> | undefined,
 	): ToolRenderResult {
-		const state = result
-			? result.isError
-				? "error"
-				: "complete"
-			: "inprogress";
+		const state = result ? (result.isError ? "error" : "complete") : "inprogress";
 
 		// Helper to render domain pills
 		const renderDomainPills = (patterns: string[]) => html`
@@ -588,11 +538,7 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 		`;
 
 		// Helper to render header text with inline skill pill
-		const renderHeaderWithPill = (
-			labelText: string,
-			skillName?: string,
-			skill?: Partial<Skill>,
-		): TemplateResult => {
+		const renderHeaderWithPill = (labelText: string, skillName?: string, skill?: Partial<Skill>): TemplateResult => {
 			if (skillName && skill) {
 				// Create full Skill object for pill
 				const fullSkill: Skill = {
@@ -611,10 +557,7 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 		};
 
 		// Helper to render skill fields (used by create/update/get)
-		const renderSkillFields = (
-			skill: Partial<Skill>,
-			showLibrary: boolean,
-		) => html`
+		const renderSkillFields = (skill: Partial<Skill>, showLibrary: boolean) => html`
 			${skill.domainPatterns?.length ? renderDomainPills(skill.domainPatterns) : ""}
 			${skill.shortDescription ? html`<div class="text-sm text-muted-foreground mt-3">${skill.shortDescription}</div>` : ""}
 			${skill.description ? html`<div class="mt-3"><markdown-block .content=${skill.description}></markdown-block></div>` : ""}
@@ -652,9 +595,7 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 				patch: i18n("Patching skill"),
 				delete: i18n("Deleting skill"),
 			};
-			const headerText = skillName
-				? `${labels[action!] || action} ${skillName}`
-				: labels[action!] || action || "";
+			const headerText = skillName ? `${labels[action!] || action} ${skillName}` : labels[action!] || action || "";
 
 			// For create/update errors, show partial skill data with error at bottom - COLLAPSED BY DEFAULT
 			if ((action === "create" || action === "update") && params?.data) {
@@ -769,11 +710,7 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 					const skillName = skillData.name;
 					if (!skillName) {
 						return {
-							content: renderHeader(
-								state,
-								Sparkles,
-								i18n("Processing skill..."),
-							),
+							content: renderHeader(state, Sparkles, i18n("Processing skill...")),
 							isCustom: false,
 						};
 					}
@@ -808,19 +745,12 @@ export const skillRenderer: ToolRenderer<SkillParams, SkillResultDetails> = {
 					const skillName = params.name;
 					if (!skillName) {
 						return {
-							content: renderHeader(
-								state,
-								Sparkles,
-								i18n("Processing skill..."),
-							),
+							content: renderHeader(state, Sparkles, i18n("Processing skill...")),
 							isCustom: false,
 						};
 					}
 
-					const labelText =
-						state === "complete"
-							? i18n("Patched skill")
-							: i18n("Patching skill");
+					const labelText = state === "complete" ? i18n("Patched skill") : i18n("Patching skill");
 					const contentRef = createRef<HTMLElement>();
 					const chevronRef = createRef<HTMLElement>();
 

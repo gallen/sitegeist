@@ -43,12 +43,7 @@ export class Toast extends LitElement {
 					? icon(AlertCircle, "sm")
 					: icon(AlertCircle, "sm");
 
-		const bgColor =
-			this.type === "success"
-				? "bg-green-600"
-				: this.type === "error"
-					? "bg-destructive"
-					: "bg-muted";
+		const bgColor = this.type === "success" ? "bg-green-600" : this.type === "error" ? "bg-destructive" : "bg-muted";
 
 		return html`
 			<div class="fixed top-4 right-4 z-[9999] ${this.isExiting ? "animate-out slide-out-to-right duration-300" : "animate-in slide-in-from-right duration-300"}">

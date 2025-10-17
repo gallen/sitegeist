@@ -37,8 +37,7 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
 
 			// Check if lock exists and owner port is still alive
 			const ownerWindowId = sessionLocks.get(sessionId);
-			const ownerPortAlive =
-				ownerWindowId !== undefined && windowPorts.has(ownerWindowId);
+			const ownerPortAlive = ownerWindowId !== undefined && windowPorts.has(ownerWindowId);
 
 			// Grant lock if: no owner, owner port dead, or requesting window is owner
 			const response: LockResultMessage =

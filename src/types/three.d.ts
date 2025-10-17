@@ -1,4 +1,4 @@
-declare module 'three' {
+declare module "three" {
 	export const Scene: any;
 	export const PerspectiveCamera: any;
 	export const WebGLRenderer: any;

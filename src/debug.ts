@@ -3,7 +3,6 @@ import { getModel } from "@mariozechner/pi-ai";
 import { setAppStorage } from "@mariozechner/pi-web-ui";
 import { html, render } from "lit";
 import { ArrowLeft, Bug, MousePointer2, Play, Sparkles } from "lucide";
-import "./debug/BrowserReplPanel.js";
 import "./debug/ReplPanel.js";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import { selectElementTool } from "./tools/select-element.js";
@@ -17,8 +16,8 @@ const models = [
 	getModel("anthropic", "claude-sonnet-4-5-20250929"),
 	getModel("openai", "gpt-5-codex"),
 	getModel("google", "gemini-2.5-pro"),
-	getModel("openrouter", "z-ai/glm-4.6")
-]
+	getModel("openrouter", "z-ai/glm-4.6"),
+];
 
 // Initialize AppStorage so tools relying on Sitegeist storage can operate in debug page
 const storage = new SitegeistAppStorage();
@@ -27,7 +26,11 @@ setAppStorage(storage);
 const TEST_PROMPTS: TestPrompt[] = [
 	{
 		name: "Multi-step calculation",
-		steps: ["Calculate the sum of numbers from 1 to 100", "Now multiply that result by 3", "Create a bar chart showing the original sum and the multiplied value"],
+		steps: [
+			"Calculate the sum of numbers from 1 to 100",
+			"Now multiply that result by 3",
+			"Create a bar chart showing the original sum and the multiplied value",
+		],
 	},
 	{
 		name: "HTML artifact iteration",
@@ -151,14 +154,6 @@ const renderDebugPage = async () => {
 						</div>
 					</div>
 
-					<!-- Browser JavaScript Panel Section -->
-					<div>
-						<h2 class="text-lg font-semibold mb-3">Browser JavaScript</h2>
-						<div class="border border-border rounded-lg overflow-hidden" style="height: 600px;">
-							<browser-repl-panel></browser-repl-panel>
-						</div>
-					</div>
-
 					<!-- Test Prompts Section -->
 					<div>
 						<h2 class="text-lg font-semibold mb-3">Test Prompts</h2>
@@ -181,7 +176,7 @@ const renderDebugPage = async () => {
 										</div>
 										<div class="p-3 pt-0 flex gap-2 flex-wrap">
 											${models.map(
-														(model) => html`
+												(model) => html`
 															${Button({
 																variant: "outline",
 																size: "sm",
@@ -197,8 +192,7 @@ const renderDebugPage = async () => {
 																title: `Run with ${model.name}`,
 															})}
 														`,
-													)
-												}
+											)}
 										</div>
 									</div>
 								`,

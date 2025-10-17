@@ -1,11 +1,4 @@
-import {
-	Badge,
-	DialogBase,
-	DialogContent,
-	DialogHeader,
-	html,
-	i18n,
-} from "@mariozechner/mini-lit";
+import { Badge, DialogBase, DialogContent, DialogHeader, html, i18n } from "@mariozechner/mini-lit";
 import { formatUsage, getAppStorage, type SessionData, type SessionMetadata } from "@mariozechner/pi-web-ui";
 import Fuse from "fuse.js";
 import { customElement, state } from "lit/decorators.js";
@@ -52,10 +45,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 		}
 	};
 
-	static async open(
-		onSelect: (sessionId: string) => void,
-		onDelete?: (sessionId: string) => void,
-	) {
+	static async open(onSelect: (sessionId: string) => void, onDelete?: (sessionId: string) => void) {
 		const dialog = new SitegeistSessionListDialog();
 		dialog.onSelectCallback = onSelect;
 		dialog.onDeleteCallback = onDelete;
@@ -75,9 +65,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 			this.sessions = await storage.sessions.getAllMetadata();
 
 			// Get lock information from background via port
-			const lockResponse = await port.sendMessage(
-				{ type: "getLockedSessions" },
-			);
+			const lockResponse = await port.sendMessage({ type: "getLockedSessions" });
 			this.sessionLocks = lockResponse.locks || {};
 		} catch (err) {
 			console.error("Failed to load sessions:", err);
@@ -113,11 +101,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 		super.close();
 
 		// Only notify about deleted sessions if dialog wasn't closed via selection
-		if (
-			!this.closedViaSelection &&
-			this.onDeleteCallback &&
-			this.deletedSessions.size > 0
-		) {
+		if (!this.closedViaSelection && this.onDeleteCallback && this.deletedSessions.size > 0) {
 			for (const sessionId of this.deletedSessions) {
 				this.onDeleteCallback(sessionId);
 			}
@@ -152,16 +136,12 @@ export class SitegeistSessionListDialog extends DialogBase {
 
 	private isSessionLocked(sessionId: string): boolean {
 		const lockWindowId = this.sessionLocks[sessionId];
-		return (
-			lockWindowId !== undefined && lockWindowId !== this.currentWindowId
-		);
+		return lockWindowId !== undefined && lockWindowId !== this.currentWindowId;
 	}
 
 	private isCurrentSession(sessionId: string): boolean {
 		const lockWindowId = this.sessionLocks[sessionId];
-		return (
-			lockWindowId !== undefined && lockWindowId === this.currentWindowId
-		);
+		return lockWindowId !== undefined && lockWindowId === this.currentWindowId;
 	}
 
 	private async handleExport(sessionId?: string) {
@@ -174,7 +154,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 			if (sessionId) {
 				// Export single session
 				const session = await storage.sessions.loadSession(sessionId);
-				const metadata = this.sessions.find(s => s.id === sessionId);
+				const metadata = this.sessions.find((s) => s.id === sessionId);
 				if (session && metadata) {
 					exported.push({ session, metadata });
 				}
@@ -196,7 +176,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 			const a = document.createElement("a");
 			a.href = url;
 			const filename = sessionId
-				? `sitegeist-session-${exported[0]?.metadata.title?.replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'export'}.json`
+				? `sitegeist-session-${exported[0]?.metadata.title?.replace(/[^a-z0-9]/gi, "-").toLowerCase() || "export"}.json`
 				: `sitegeist-sessions-${new Date().toISOString().split("T")[0]}.json`;
 			a.download = filename;
 			a.click();
@@ -238,9 +218,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 		cutoffDate.setDate(cutoffDate.getDate() - days);
 		const cutoffISO = cutoffDate.toISOString();
 
-		const oldSessions = this.sessions.filter(
-			(s) => s.lastModified < cutoffISO,
-		);
+		const oldSessions = this.sessions.filter((s) => s.lastModified < cutoffISO);
 
 		if (oldSessions.length === 0) {
 			alert(i18n(`No sessions older than {days} days`).replace("{days}", days.toString()));
@@ -287,7 +265,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 				const sessionsToImport: ExportedSession[] = importData;
 
 				// Validate format
-				if (!sessionsToImport.every(s => s.session && s.metadata)) {
+				if (!sessionsToImport.every((s) => s.session && s.metadata)) {
 					alert(i18n("Invalid import file format"));
 					return;
 				}
@@ -296,16 +274,18 @@ export class SitegeistSessionListDialog extends DialogBase {
 				if (!storage.sessions) return;
 
 				// Check for duplicates
-				const existingIds = new Set(this.sessions.map(s => s.id));
-				const duplicates = sessionsToImport.filter(s => existingIds.has(s.metadata.id));
+				const existingIds = new Set(this.sessions.map((s) => s.id));
+				const duplicates = sessionsToImport.filter((s) => existingIds.has(s.metadata.id));
 
-				let duplicateAction: 'skip' | 'overwrite' | null = null;
+				let duplicateAction: "skip" | "overwrite" | null = null;
 				if (duplicates.length > 0) {
 					const choice = confirm(
-						i18n(`Found {count} duplicate sessions. Click OK to overwrite, Cancel to skip duplicates.`)
-							.replace("{count}", duplicates.length.toString())
+						i18n(`Found {count} duplicate sessions. Click OK to overwrite, Cancel to skip duplicates.`).replace(
+							"{count}",
+							duplicates.length.toString(),
+						),
 					);
-					duplicateAction = choice ? 'overwrite' : 'skip';
+					duplicateAction = choice ? "overwrite" : "skip";
 				}
 
 				let imported = 0;
@@ -319,7 +299,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 					try {
 						const isDuplicate = existingIds.has(metadata.id);
 
-						if (isDuplicate && duplicateAction === 'skip') {
+						if (isDuplicate && duplicateAction === "skip") {
 							skipped++;
 							continue;
 						}
@@ -338,22 +318,19 @@ export class SitegeistSessionListDialog extends DialogBase {
 						};
 
 						// Save with updated metadata
-						await storage.sessions.saveSession(
-							metadata.id,
-							session,
-							updatedMetadata,
-						);
+						await storage.sessions.saveSession(metadata.id, session, updatedMetadata);
 						imported++;
 					} catch (err) {
 						console.error(`Failed to import session ${metadata.title}:`, err);
 					}
 				}
 
-				const message = skipped > 0
-					? i18n(`Imported {imported} sessions, skipped {skipped} duplicates`)
-						.replace("{imported}", imported.toString())
-						.replace("{skipped}", skipped.toString())
-					: i18n(`Imported {count} sessions`).replace("{count}", imported.toString());
+				const message =
+					skipped > 0
+						? i18n(`Imported {imported} sessions, skipped {skipped} duplicates`)
+								.replace("{imported}", imported.toString())
+								.replace("{skipped}", skipped.toString())
+						: i18n(`Imported {count} sessions`).replace("{count}", imported.toString());
 
 				alert(message);
 				await this.loadSessionsAndLocks();
@@ -395,7 +372,9 @@ export class SitegeistSessionListDialog extends DialogBase {
 						<div class="relative delete-menu-container">
 							<button
 								class="px-3 py-2 text-sm font-medium rounded-md border border-border bg-background text-foreground hover:bg-secondary transition-colors"
-								@click=${() => {this.showDeleteMenu = !this.showDeleteMenu}}
+								@click=${() => {
+									this.showDeleteMenu = !this.showDeleteMenu;
+								}}
 							>
 								${i18n("Delete Old")}
 							</button>
@@ -457,7 +436,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 						${Badge({
 							children: `$${stats.totalCost.toFixed(4)}`,
 							variant: "secondary",
-							className: stats.totalCost > 0.01 ? "text-orange-500" : "text-green-600"
+							className: stats.totalCost > 0.01 ? "text-orange-500" : "text-green-600",
 						})}
 					</div>
 

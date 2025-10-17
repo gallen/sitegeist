@@ -1,11 +1,4 @@
-import {
-	copyFileSync,
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	rmSync,
-	watch,
-} from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, watch } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, context } from "esbuild";
@@ -46,27 +39,16 @@ const buildOptions = {
 		".tsx": "tsx",
 	},
 	define: {
-		"process.env.NODE_ENV": JSON.stringify(
-			process.env.NODE_ENV ?? (isWatch ? "development" : "production"),
-		),
+		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? (isWatch ? "development" : "production")),
 		"process.env.TARGET_BROWSER": JSON.stringify(targetBrowser),
 	},
 	// Force all mini-lit and lit imports to resolve to sitegeist's node_modules
 	alias: {
-		"@mariozechner/mini-lit": join(
-			packageRoot,
-			"node_modules/@mariozechner/mini-lit",
-		),
+		"@mariozechner/mini-lit": join(packageRoot, "node_modules/@mariozechner/mini-lit"),
 		lit: join(packageRoot, "node_modules/lit"),
 		"lit/decorators.js": join(packageRoot, "node_modules/lit/decorators.js"),
-		"lit/directives/class-map.js": join(
-			packageRoot,
-			"node_modules/lit/directives/class-map.js",
-		),
-		"lit/directives/unsafe-html.js": join(
-			packageRoot,
-			"node_modules/lit/directives/unsafe-html.js",
-		),
+		"lit/directives/class-map.js": join(packageRoot, "node_modules/lit/directives/class-map.js"),
+		"lit/directives/unsafe-html.js": join(packageRoot, "node_modules/lit/directives/unsafe-html.js"),
 	},
 };
 
@@ -77,10 +59,7 @@ const getStaticFiles = () => {
 
 const copyStatic = () => {
 	// Use browser-specific manifest
-	const manifestSource = join(
-		packageRoot,
-		`static/manifest.${targetBrowser}.json`,
-	);
+	const manifestSource = join(packageRoot, `static/manifest.${targetBrowser}.json`);
 	const manifestDest = join(outDir, "manifest.json");
 	copyFileSync(manifestSource, manifestDest);
 
@@ -97,15 +76,9 @@ const copyStatic = () => {
 	}
 
 	// Copy PDF.js worker from node_modules (check both local and monorepo root)
-	let pdfWorkerSource = join(
-		packageRoot,
-		"node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
-	);
+	let pdfWorkerSource = join(packageRoot, "node_modules/pdfjs-dist/build/pdf.worker.min.mjs");
 	if (!existsSync(pdfWorkerSource)) {
-		pdfWorkerSource = join(
-			packageRoot,
-			"../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
-		);
+		pdfWorkerSource = join(packageRoot, "../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs");
 	}
 	const pdfWorkerDestDir = join(outDir, "pdfjs-dist/build");
 	mkdirSync(pdfWorkerDestDir, { recursive: true });
@@ -130,10 +103,7 @@ const run = async () => {
 		});
 
 		// Watch the manifest file for the target browser
-		const manifestSource = join(
-			packageRoot,
-			`static/manifest.${targetBrowser}.json`,
-		);
+		const manifestSource = join(packageRoot, `static/manifest.${targetBrowser}.json`);
 		watch(manifestSource, (eventType) => {
 			if (eventType === "change") {
 				console.log(`\nManifest changed, copying...`);

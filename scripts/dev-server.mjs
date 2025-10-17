@@ -36,42 +36,38 @@ wss.on("connection", (ws) => {
 });
 
 // Watch for changes in both dist directories
-const watcherChrome = watch(
-	distDirChrome,
-	{ recursive: true },
-	(_eventType, filename) => {
-		if (filename) {
-			console.log(`[DevServer] Chrome file changed: ${filename}`);
+const watcherChrome = watch(distDirChrome, { recursive: true }, (_eventType, filename) => {
+	if (filename) {
+		console.log(`[DevServer] Chrome file changed: ${filename}`);
 
-			// Send reload message to all connected clients
-			const message = JSON.stringify({
-				type: "reload",
-				browser: "chrome",
-				file: filename,
-			});
-			clients.forEach((client) => {
-				if (client.readyState === 1) {
-					// OPEN state
-					client.send(message);
-				}
-			});
-		}
-	},
-);
+		// Send reload message to all connected clients
+		const message = JSON.stringify({
+			type: "reload",
+			browser: "chrome",
+			file: filename,
+		});
+		clients.forEach((client) => {
+			if (client.readyState === 1) {
+				// OPEN state
+				client.send(message);
+			}
+		});
+	}
+});
 
 // Start server
 server.listen(PORT, () => {
 	console.log(`[DevServer] WebSocket server running on ws://localhost:${PORT}`);
-	console.log(
-		`[DevServer] Watching for changes in ${distDirChrome}`,
-	);
+	console.log(`[DevServer] Watching for changes in ${distDirChrome}`);
 });
 
 // Graceful shutdown
 process.on("SIGINT", () => {
 	console.log("\n[DevServer] Shutting down...");
 	watcherChrome.close();
-	clients.forEach((client) => client.close());
+	for (const client of clients) {
+		client.close();
+	}
 	server.close(() => {
 		process.exit(0);
 	});

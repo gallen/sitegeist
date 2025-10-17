@@ -1,6 +1,6 @@
 import { i18n } from "@mariozechner/mini-lit";
 import { customElement } from "lit/decorators.js";
-import { requestUserScriptsPermission } from "../tools/browser-javascript.js";
+import { requestUserScriptsPermission } from "../tools/repl/userscripts-helpers.js";
 import { PermissionDialog } from "./PermissionDialog.js";
 
 @customElement("userscripts-permission-dialog")
@@ -17,9 +17,7 @@ export class UserScriptsPermissionDialog extends PermissionDialog {
 	protected header() {
 		return {
 			title: i18n("JavaScript Execution Permission Required"),
-			description: i18n(
-				"This extension needs permission to execute JavaScript code on web pages",
-			),
+			description: i18n("This extension needs permission to execute JavaScript code on web pages"),
 		};
 	}
 

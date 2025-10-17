@@ -36,15 +36,11 @@ export class SkillsStore extends Store {
 
 	async list(currentUrl?: string): Promise<Skill[]> {
 		const keys = await this.getBackend().keys("skills");
-		const skills = await Promise.all(
-			keys.map((key) => this.getBackend().get<Skill>("skills", key)),
-		);
+		const skills = await Promise.all(keys.map((key) => this.getBackend().get<Skill>("skills", key)));
 		const validSkills = skills.filter((s): s is Skill => s !== null);
 
 		if (currentUrl) {
-			return validSkills.filter((skill) =>
-				this.matchesAnyPattern(currentUrl, skill.domainPatterns),
-			);
+			return validSkills.filter((skill) => this.matchesAnyPattern(currentUrl, skill.domainPatterns));
 		}
 
 		return validSkills;
@@ -87,8 +83,7 @@ export class SkillsStore extends Store {
 			for (const pattern of patterns) {
 				const parts = pattern.split("/");
 				const domainPattern = parts[0];
-				const pathPattern =
-					parts.length > 1 ? `/${parts.slice(1).join("/")}` : "";
+				const pathPattern = parts.length > 1 ? `/${parts.slice(1).join("/")}` : "";
 
 				const normalizedHostname = hostname.replace(/^www\./, "");
 				const normalizedPattern = domainPattern.replace(/^www\./, "");

@@ -1,19 +1,14 @@
 import { html, i18n, icon } from "@mariozechner/mini-lit";
 import type { AgentTool, ToolResultMessage } from "@mariozechner/pi-ai";
 import { StringEnum } from "@mariozechner/pi-ai";
-import {
-	type Agent,
-	registerToolRenderer,
-	type ToolRenderResult,
-	type ToolRenderer,
-} from "@mariozechner/pi-web-ui";
+import { registerToolRenderer, type ToolRenderer, type ToolRenderResult } from "@mariozechner/pi-web-ui";
 import { type Static, Type } from "@sinclair/typebox";
 import { Loader2 } from "lucide";
 import { SkillPill } from "../components/SkillPill.js";
-import { NAVIGATE_TOOL_DESCRIPTION } from "../prompts/tool-prompts.js";
+import { TabPill } from "../components/TabPill.js";
+import { NAVIGATE_TOOL_DESCRIPTION } from "../prompts/prompts.js";
 import { getSitegeistStorage } from "../storage/app-storage.js";
 import type { Skill } from "../storage/stores/skills-store.js";
-import { TabPill } from "../components/TabPill.js";
 import "../utils/i18n-extension.js";
 
 // Track tool-initiated navigations to filter out duplicate navigation messages
@@ -38,9 +33,11 @@ function markNavigationEnd() {
 const navigateSchema = Type.Object({
 	url: Type.Optional(Type.String({ description: "URL to navigate to (in current tab or new tab if newTab is true)" })),
 	newTab: Type.Optional(Type.Boolean({ description: "Set to true to open URL in a new tab instead of current tab" })),
-	history: Type.Optional(StringEnum(["back", "forward"], {
-		description: "Navigate browser history (back or forward)",
-	})),
+	history: Type.Optional(
+		StringEnum(["back", "forward"], {
+			description: "Navigate browser history (back or forward)",
+		}),
+	),
 	listTabs: Type.Optional(Type.Boolean({ description: "Set to true to list all open tabs" })),
 	switchToTab: Type.Optional(Type.Number({ description: "Tab ID to switch to (get IDs from listTabs)" })),
 });
@@ -74,8 +71,6 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 	description = NAVIGATE_TOOL_DESCRIPTION;
 	parameters = navigateSchema;
 
-	constructor(private agent: Agent) {}
-
 	async execute(
 		_toolCallId: string,
 		args: NavigateParams,
@@ -91,7 +86,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 		}
 
 		// Handle switch tab action
-		if ("switchToTab" in args) {
+		if ("switchToTab" in args && args.switchToTab !== undefined) {
 			markNavigationStart();
 			try {
 				return await this.switchToTab(args.switchToTab);
@@ -115,7 +110,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 
 		markNavigationStart();
 		try {
-			if ("url" in args) {
+			if ("url" in args && args.url !== undefined) {
 				// Check if opening in new tab
 				if ("newTab" in args && args.newTab) {
 					finalUrl = await this.openInNewTab(args.url, signal);
@@ -129,9 +124,9 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 					// Navigate to URL in current tab
 					finalUrl = await this.navigateToUrl(tab.id, args.url, signal);
 				}
-			} else if ("history" in args) {
+			} else if ("history" in args && args.history !== undefined) {
 				// Navigate history
-				finalUrl = await this.navigateHistory(tab.id, args.history, signal);
+				finalUrl = await this.navigateHistory(tab.id, args.history as "back" | "forward", signal);
 			} else {
 				throw new Error("Invalid navigation parameters");
 			}
@@ -180,11 +175,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 		return { output, details };
 	}
 
-	private async navigateToUrl(
-		tabId: number,
-		url: string,
-		signal?: AbortSignal,
-	): Promise<string> {
+	private async navigateToUrl(tabId: number, url: string, signal?: AbortSignal): Promise<string> {
 		return new Promise((resolve, reject) => {
 			if (signal?.aborted) {
 				reject(new Error("Aborted"));
@@ -192,9 +183,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 			}
 
 			// Set up DOMContentLoaded listener (fires when DOM is ready, more reliable than onCompleted)
-			const listener = (
-				details: chrome.webNavigation.WebNavigationFramedCallbackDetails,
-			) => {
+			const listener = (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
 				if (details.tabId === tabId && details.frameId === 0) {
 					chrome.webNavigation.onDOMContentLoaded.removeListener(listener);
 					if (abortListener) signal?.removeEventListener("abort", abortListener);
@@ -227,11 +216,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 		});
 	}
 
-	private async navigateHistory(
-		tabId: number,
-		direction: "back" | "forward",
-		signal?: AbortSignal,
-	): Promise<string> {
+	private async navigateHistory(tabId: number, direction: "back" | "forward", signal?: AbortSignal): Promise<string> {
 		if (signal?.aborted) {
 			throw new Error("Aborted");
 		}
@@ -262,9 +247,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 			}
 
 			// Set up navigation completion listener
-			const listener = (
-				details: chrome.webNavigation.WebNavigationFramedCallbackDetails,
-			) => {
+			const listener = (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
 				if (details.tabId === tabId && details.frameId === 0) {
 					chrome.webNavigation.onCompleted.removeListener(listener);
 					if (abortListener) signal?.removeEventListener("abort", abortListener);
@@ -332,9 +315,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 				return;
 			}
 
-			const listener = (
-				details: chrome.webNavigation.WebNavigationFramedCallbackDetails,
-			) => {
+			const listener = (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
 				if (details.tabId === newTab.id && details.frameId === 0) {
 					chrome.webNavigation.onDOMContentLoaded.removeListener(listener);
 					if (abortListener) signal?.removeEventListener("abort", abortListener);
@@ -361,8 +342,9 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 		const tabs = await chrome.tabs.query({});
 
 		const tabInfos: TabInfo[] = tabs
-			.filter((t: chrome.tabs.Tab): t is chrome.tabs.Tab & { id: number; url: string } =>
-				t.id !== undefined && t.url !== undefined
+			.filter(
+				(t: chrome.tabs.Tab): t is chrome.tabs.Tab & { id: number; url: string } =>
+					t.id !== undefined && t.url !== undefined,
 			)
 			.map((t: chrome.tabs.Tab & { id: number; url: string }) => ({
 				id: t.id,
@@ -388,7 +370,7 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 
 	private async switchToTab(tabId: number): Promise<{ output: string; details: NavigateResult }> {
 		// Ensure tabId is a number (in case it comes through as string)
-		const numericTabId = typeof tabId === 'string' ? parseInt(tabId, 10) : tabId;
+		const numericTabId = typeof tabId === "string" ? parseInt(tabId, 10) : tabId;
 
 		// Query for the tab to get its details
 		const tabs = await chrome.tabs.query({});
@@ -464,9 +446,9 @@ export const navigateRenderer: ToolRenderer<NavigateParams, NavigateResult> = {
 		// Loading state (params but no result)
 		if (params && !result) {
 			let displayText = "";
-			if ("url" in params) {
+			if ("url" in params && params.url) {
 				displayText = params.url;
-			} else if ("history" in params) {
+			} else if ("history" in params && params.history) {
 				displayText = `history.${params.history}()`;
 			} else if ("listTabs" in params) {
 				displayText = "Listing tabs...";
@@ -535,13 +517,15 @@ export const navigateRenderer: ToolRenderer<NavigateParams, NavigateResult> = {
 								<img src="${faviconUrl}" alt="" class="w-4 h-4 flex-shrink-0" />
 								<span class="truncate font-medium">${title}</span>
 							</button>
-							${skillObjects.length > 0
-								? html`
+							${
+								skillObjects.length > 0
+									? html`
 										<div class="flex flex-wrap gap-2">
 											${skillObjects.map((s) => SkillPill(s, true))}
 										</div>
 								  `
-								: ""}
+									: ""
+							}
 						</div>
 					`,
 					isCustom: true,

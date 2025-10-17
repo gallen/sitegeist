@@ -1,5 +1,5 @@
 import type { ToolResultMessage } from "@mariozechner/pi-ai";
-import { registerToolRenderer, type ToolRenderResult, type ToolRenderer } from "@mariozechner/pi-web-ui";
+import { registerToolRenderer, type ToolRenderer, type ToolRenderResult } from "@mariozechner/pi-web-ui";
 import { html } from "lit";
 import type { DebuggerParams, DebuggerResult } from "./debugger.js";
 
@@ -7,7 +7,7 @@ export const debuggerRenderer: ToolRenderer<DebuggerParams, DebuggerResult> = {
 	render(
 		params: DebuggerParams | undefined,
 		result: ToolResultMessage<DebuggerResult> | undefined,
-		isStreaming?: boolean,
+		_isStreaming?: boolean,
 	): ToolRenderResult {
 		// Loading state (params but no result)
 		if (params && !result) {

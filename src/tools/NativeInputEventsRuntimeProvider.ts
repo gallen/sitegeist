@@ -1,9 +1,10 @@
 import type { SandboxRuntimeProvider } from "@mariozechner/pi-web-ui";
-import { NATIVE_INPUT_EVENTS_DESCRIPTION } from "../prompts/tool-prompts.js";
+import { NATIVE_INPUT_EVENTS_DESCRIPTION } from "../prompts/prompts.js";
 
 /**
  * Provides native input event functions to browser_javascript using Chrome Debugger API.
  * Dispatches REAL browser events (isTrusted: true) for automation of anti-bot sites.
+ * Operates on the currently active tab.
  */
 export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider {
 	private modifiers = 0; // Track currently pressed modifiers
@@ -13,10 +14,19 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 	private readonly MODIFIER_META = 4;
 	private readonly MODIFIER_SHIFT = 8;
 
-	constructor(private tabId: number) {}
-
 	getData(): Record<string, any> {
 		return {};
+	}
+
+	/**
+	 * Get the currently active tab ID
+	 */
+	private async getActiveTabId(): Promise<number> {
+		const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+		if (!tab?.id) {
+			throw new Error("No active tab found");
+		}
+		return tab.id;
 	}
 
 	private getKeyInfo(key: string): { key: string; code: string; keyCode: number } {
@@ -24,45 +34,45 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 		// Supports standard key names that LLMs typically know
 		const keyMap: Record<string, { key: string; code: string; keyCode: number }> = {
 			// Arrow keys
-			'ArrowRight': { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 },
-			'ArrowLeft': { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
-			'ArrowUp': { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
-			'ArrowDown': { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
+			ArrowRight: { key: "ArrowRight", code: "ArrowRight", keyCode: 39 },
+			ArrowLeft: { key: "ArrowLeft", code: "ArrowLeft", keyCode: 37 },
+			ArrowUp: { key: "ArrowUp", code: "ArrowUp", keyCode: 38 },
+			ArrowDown: { key: "ArrowDown", code: "ArrowDown", keyCode: 40 },
 
 			// Navigation keys
-			'Enter': { key: 'Enter', code: 'Enter', keyCode: 13 },
-			'Tab': { key: 'Tab', code: 'Tab', keyCode: 9 },
-			'Escape': { key: 'Escape', code: 'Escape', keyCode: 27 },
-			'Backspace': { key: 'Backspace', code: 'Backspace', keyCode: 8 },
-			'Delete': { key: 'Delete', code: 'Delete', keyCode: 46 },
-			'Home': { key: 'Home', code: 'Home', keyCode: 36 },
-			'End': { key: 'End', code: 'End', keyCode: 35 },
-			'PageUp': { key: 'PageUp', code: 'PageUp', keyCode: 33 },
-			'PageDown': { key: 'PageDown', code: 'PageDown', keyCode: 34 },
+			Enter: { key: "Enter", code: "Enter", keyCode: 13 },
+			Tab: { key: "Tab", code: "Tab", keyCode: 9 },
+			Escape: { key: "Escape", code: "Escape", keyCode: 27 },
+			Backspace: { key: "Backspace", code: "Backspace", keyCode: 8 },
+			Delete: { key: "Delete", code: "Delete", keyCode: 46 },
+			Home: { key: "Home", code: "Home", keyCode: 36 },
+			End: { key: "End", code: "End", keyCode: 35 },
+			PageUp: { key: "PageUp", code: "PageUp", keyCode: 33 },
+			PageDown: { key: "PageDown", code: "PageDown", keyCode: 34 },
 
 			// Modifier keys
-			'Shift': { key: 'Shift', code: 'ShiftLeft', keyCode: 16 },
-			'Control': { key: 'Control', code: 'ControlLeft', keyCode: 17 },
-			'Alt': { key: 'Alt', code: 'AltLeft', keyCode: 18 },
-			'Meta': { key: 'Meta', code: 'MetaLeft', keyCode: 91 },
+			Shift: { key: "Shift", code: "ShiftLeft", keyCode: 16 },
+			Control: { key: "Control", code: "ControlLeft", keyCode: 17 },
+			Alt: { key: "Alt", code: "AltLeft", keyCode: 18 },
+			Meta: { key: "Meta", code: "MetaLeft", keyCode: 91 },
 
 			// Function keys
-			'F1': { key: 'F1', code: 'F1', keyCode: 112 },
-			'F2': { key: 'F2', code: 'F2', keyCode: 113 },
-			'F3': { key: 'F3', code: 'F3', keyCode: 114 },
-			'F4': { key: 'F4', code: 'F4', keyCode: 115 },
-			'F5': { key: 'F5', code: 'F5', keyCode: 116 },
-			'F6': { key: 'F6', code: 'F6', keyCode: 117 },
-			'F7': { key: 'F7', code: 'F7', keyCode: 118 },
-			'F8': { key: 'F8', code: 'F8', keyCode: 119 },
-			'F9': { key: 'F9', code: 'F9', keyCode: 120 },
-			'F10': { key: 'F10', code: 'F10', keyCode: 121 },
-			'F11': { key: 'F11', code: 'F11', keyCode: 122 },
-			'F12': { key: 'F12', code: 'F12', keyCode: 123 },
+			F1: { key: "F1", code: "F1", keyCode: 112 },
+			F2: { key: "F2", code: "F2", keyCode: 113 },
+			F3: { key: "F3", code: "F3", keyCode: 114 },
+			F4: { key: "F4", code: "F4", keyCode: 115 },
+			F5: { key: "F5", code: "F5", keyCode: 116 },
+			F6: { key: "F6", code: "F6", keyCode: 117 },
+			F7: { key: "F7", code: "F7", keyCode: 118 },
+			F8: { key: "F8", code: "F8", keyCode: 119 },
+			F9: { key: "F9", code: "F9", keyCode: 120 },
+			F10: { key: "F10", code: "F10", keyCode: 121 },
+			F11: { key: "F11", code: "F11", keyCode: 122 },
+			F12: { key: "F12", code: "F12", keyCode: 123 },
 
 			// Special keys
-			'Space': { key: ' ', code: 'Space', keyCode: 32 },
-			'Insert': { key: 'Insert', code: 'Insert', keyCode: 45 },
+			Space: { key: " ", code: "Space", keyCode: 32 },
+			Insert: { key: "Insert", code: "Insert", keyCode: 45 },
 		};
 
 		// Check if it's in the keyMap first
@@ -103,7 +113,9 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 			};
 		}
 
-		throw new Error(`Unknown key name: ${key}. Supported keys: ${Object.keys(keyMap).join(', ')}, or any single character (a-z, 0-9, etc.)`);
+		throw new Error(
+			`Unknown key name: ${key}. Supported keys: ${Object.keys(keyMap).join(", ")}, or any single character (a-z, 0-9, etc.)`,
+		);
 	}
 
 	getRuntime(): (sandboxId: string) => void {
@@ -165,11 +177,13 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 
 		console.log("[NativeInput] Received event:", message.action, message);
 
+		// Get active tab ID once at the start
+		const tabId = await this.getActiveTabId();
 
 		try {
 			// Attach debugger to tab
 			await new Promise<void>((resolve, reject) => {
-				chrome.debugger.attach({ tabId: this.tabId }, "1.3", () => {
+				chrome.debugger.attach({ tabId }, "1.3", () => {
 					if (chrome.runtime.lastError) {
 						// Check if already attached
 						if (chrome.runtime.lastError.message?.includes("already attached")) {
@@ -190,19 +204,15 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				console.log("[NativeInput] Finding element:", message.selector);
 
 				// Find element and get its center coordinates
-				const result = await chrome.debugger.sendCommand(
-					{ tabId: this.tabId },
-					"Runtime.evaluate",
-					{
-						expression: `(() => {
+				const result = (await chrome.debugger.sendCommand({ tabId: tabId }, "Runtime.evaluate", {
+					expression: `(() => {
 							const el = document.querySelector(${JSON.stringify(message.selector)});
 							if (!el) throw new Error('Selector not found: ${message.selector}');
 							const rect = el.getBoundingClientRect();
 							return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 						})()`,
-						returnByValue: true,
-					},
-				) as any;
+					returnByValue: true,
+				})) as any;
 
 				console.log("[NativeInput] Element eval result:", result);
 
@@ -215,7 +225,7 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				console.log("[NativeInput] Clicking at coordinates:", { x, y });
 
 				// Dispatch trusted mouse events
-				const pressResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchMouseEvent", {
+				const pressResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchMouseEvent", {
 					type: "mousePressed",
 					x,
 					y,
@@ -224,7 +234,7 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				});
 				console.log("[NativeInput] Mouse pressed result:", pressResult);
 
-				const releaseResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchMouseEvent", {
+				const releaseResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchMouseEvent", {
 					type: "mouseReleased",
 					x,
 					y,
@@ -239,19 +249,15 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				console.log("[NativeInput] Typing text:", message.text, "into:", message.selector);
 
 				// Focus element first
-				const focusResult = await chrome.debugger.sendCommand(
-					{ tabId: this.tabId },
-					"Runtime.evaluate",
-					{
-						expression: `(() => {
+				const focusResult = (await chrome.debugger.sendCommand({ tabId: tabId }, "Runtime.evaluate", {
+					expression: `(() => {
 							const el = document.querySelector(${JSON.stringify(message.selector)});
 							if (!el) throw new Error('Selector not found: ${message.selector}');
 							el.focus();
 							return true;
 						})()`,
-						returnByValue: true,
-					},
-				) as any;
+					returnByValue: true,
+				})) as any;
 
 				console.log("[NativeInput] Focus result:", focusResult);
 
@@ -262,12 +268,12 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 
 				// Type each character
 				for (const char of message.text) {
-					await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+					await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 						type: "keyDown",
 						text: char,
 					});
 
-					await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+					await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 						type: "keyUp",
 						text: char,
 					});
@@ -281,7 +287,7 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				const keyInfo = this.getKeyInfo(message.key);
 
 				// Press single key with proper CDP parameters
-				const keyDownResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+				const keyDownResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 					type: "keyDown",
 					key: keyInfo.key,
 					code: keyInfo.code,
@@ -290,7 +296,7 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				});
 				console.log("[NativeInput] Key down result:", keyDownResult);
 
-				const keyUpResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+				const keyUpResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 					type: "keyUp",
 					key: keyInfo.key,
 					code: keyInfo.code,
@@ -307,12 +313,12 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				const keyInfo = this.getKeyInfo(message.key);
 
 				// Update modifier state
-				if (message.key === 'Alt') this.modifiers |= this.MODIFIER_ALT;
-				if (message.key === 'Control') this.modifiers |= this.MODIFIER_CTRL;
-				if (message.key === 'Meta') this.modifiers |= this.MODIFIER_META;
-				if (message.key === 'Shift') this.modifiers |= this.MODIFIER_SHIFT;
+				if (message.key === "Alt") this.modifiers |= this.MODIFIER_ALT;
+				if (message.key === "Control") this.modifiers |= this.MODIFIER_CTRL;
+				if (message.key === "Meta") this.modifiers |= this.MODIFIER_META;
+				if (message.key === "Shift") this.modifiers |= this.MODIFIER_SHIFT;
 
-				const keyDownResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+				const keyDownResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 					type: "keyDown",
 					key: keyInfo.key,
 					code: keyInfo.code,
@@ -329,7 +335,7 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 
 				const keyInfo = this.getKeyInfo(message.key);
 
-				const keyUpResult = await chrome.debugger.sendCommand({ tabId: this.tabId }, "Input.dispatchKeyEvent", {
+				const keyUpResult = await chrome.debugger.sendCommand({ tabId: tabId }, "Input.dispatchKeyEvent", {
 					type: "keyUp",
 					key: keyInfo.key,
 					code: keyInfo.code,
@@ -340,10 +346,10 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 				console.log("[NativeInput] Key up result:", keyUpResult, "modifiers:", this.modifiers);
 
 				// Update modifier state after keyUp
-				if (message.key === 'Alt') this.modifiers &= ~this.MODIFIER_ALT;
-				if (message.key === 'Control') this.modifiers &= ~this.MODIFIER_CTRL;
-				if (message.key === 'Meta') this.modifiers &= ~this.MODIFIER_META;
-				if (message.key === 'Shift') this.modifiers &= ~this.MODIFIER_SHIFT;
+				if (message.key === "Alt") this.modifiers &= ~this.MODIFIER_ALT;
+				if (message.key === "Control") this.modifiers &= ~this.MODIFIER_CTRL;
+				if (message.key === "Meta") this.modifiers &= ~this.MODIFIER_META;
+				if (message.key === "Shift") this.modifiers &= ~this.MODIFIER_SHIFT;
 
 				console.log("[NativeInput] Key up completed successfully");
 				respond({ success: true });

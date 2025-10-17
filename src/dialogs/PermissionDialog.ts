@@ -1,11 +1,4 @@
-import {
-	Button,
-	DialogBase,
-	DialogContent,
-	DialogHeader,
-	html,
-	i18n,
-} from "@mariozechner/mini-lit";
+import { Button, DialogBase, DialogContent, DialogHeader, html, i18n } from "@mariozechner/mini-lit";
 
 export abstract class PermissionDialog extends DialogBase {
 	protected requesting = false;
@@ -151,9 +144,7 @@ export abstract class PermissionDialog extends DialogBase {
 							variant: "default",
 							onClick: () => this.handleGrant(),
 							disabled: this.requesting,
-							children: this.requesting
-								? i18n("Requesting...")
-								: i18n("Grant Permission"),
+							children: this.requesting ? i18n("Requesting...") : i18n("Grant Permission"),
 						})}
 					</div>
 				`,

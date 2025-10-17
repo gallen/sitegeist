@@ -3,10 +3,7 @@ import { Sparkles } from "lucide";
 import { SkillDialog } from "../dialogs/SkillDialog.js";
 import type { Skill } from "../storage/stores/skills-store.js";
 
-export function SkillPill(
-	nameOrSkill: string | Skill,
-	clickable = false,
-): TemplateResult {
+export function SkillPill(nameOrSkill: string | Skill, clickable = false): TemplateResult {
 	const skill = typeof nameOrSkill === "string" ? null : nameOrSkill;
 	const name = typeof nameOrSkill === "string" ? nameOrSkill : nameOrSkill.name;
 

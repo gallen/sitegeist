@@ -55,8 +55,14 @@ function captureOrbAsImage(size: number): Promise<Blob> {
 				// Draw cropped and scaled orb
 				ctx.drawImage(
 					canvas,
-					cropOffset, cropOffset, cropSize, cropSize, // Source: center crop
-					0, 0, size, size // Destination: full icon size
+					cropOffset,
+					cropOffset,
+					cropSize,
+					cropSize, // Source: center crop
+					0,
+					0,
+					size,
+					size, // Destination: full icon size
 				);
 
 				// Convert to blob
@@ -169,7 +175,9 @@ function renderIconsPage() {
 						variant: "ghost",
 						size: "sm",
 						children: html`<span class="flex items-center gap-2">${icon(ArrowLeft, "sm")} <span>Back to Debug</span></span>`,
-						onClick: () => {window.location.href = "/debug.html"},
+						onClick: () => {
+							window.location.href = "/debug.html";
+						},
 					})}
 					<h1 class="text-3xl font-bold">Icon Generator</h1>
 				</div>

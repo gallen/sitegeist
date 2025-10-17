@@ -6,7 +6,7 @@ Prompts are centralized in two locations: Sitegeist-specific prompts and shared 
 
 ## Prompt Map
 
-### Sitegeist Prompts ([src/prompts/tool-prompts.ts](../src/prompts/tool-prompts.ts))
+### Sitegeist Prompts ([src/prompts/prompts.ts](../src/prompts/prompts.ts))
 
 1. **SYSTEM_PROMPT** (line 12)
    - Main agent system prompt defining identity, tone, tools, workflows

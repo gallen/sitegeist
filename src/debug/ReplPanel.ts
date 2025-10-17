@@ -23,9 +23,7 @@ export class ReplPanel extends LitElement {
 
 		// Create REPL tool with runtime providers and sandbox URL provider for extension CSP
 		this.replTool = createJavaScriptReplTool();
-		this.replTool.runtimeProvidersFactory = () => [
-			new ArtifactsRuntimeProvider(this.artifactsPanel),
-		];
+		this.replTool.runtimeProvidersFactory = () => [new ArtifactsRuntimeProvider(this.artifactsPanel)];
 		this.replTool.sandboxUrlProvider = () => chrome.runtime.getURL("sandbox.html");
 	}
 
@@ -41,9 +39,12 @@ export class ReplPanel extends LitElement {
 		this.abortController = new AbortController();
 
 		try {
-			const result = await this.replTool.execute("", { code: this.code, title: "Debug REPL" }, this.abortController.signal);
+			const result = await this.replTool.execute(
+				"",
+				{ code: this.code, title: "Debug REPL" },
+				this.abortController.signal,
+			);
 			this.output = result.output || "No output";
-		// biome-ignore lint/suspicious/noExplicitAny: fine
 		} catch (error: any) {
 			if (error.message === "Execution aborted") {
 				this.output = "Execution aborted by user";
@@ -72,20 +73,22 @@ export class ReplPanel extends LitElement {
 						<div class="flex-1 flex flex-col gap-2 min-h-0">
 							<div class="flex items-center justify-between">
 								<label class="text-sm font-medium">JavaScript Code</label>
-								${this.isExecuting
-									? Button({
-											variant: "destructive",
-											size: "sm",
-											children: html`<span class="flex items-center gap-1.5">${icon(Square, "sm")} Abort</span>`,
-											onClick: () => this.abortExecution(),
-									  })
-									: Button({
-											variant: "default",
-											size: "sm",
-											children: html`<span class="flex items-center gap-1.5">${icon(Play, "sm")} Run</span>`,
-											onClick: () => this.executeCode(),
-											disabled: !this.code.trim(),
-									  })}
+								${
+									this.isExecuting
+										? Button({
+												variant: "destructive",
+												size: "sm",
+												children: html`<span class="flex items-center gap-1.5">${icon(Square, "sm")} Abort</span>`,
+												onClick: () => this.abortExecution(),
+											})
+										: Button({
+												variant: "default",
+												size: "sm",
+												children: html`<span class="flex items-center gap-1.5">${icon(Play, "sm")} Run</span>`,
+												onClick: () => this.executeCode(),
+												disabled: !this.code.trim(),
+											})
+								}
 							</div>
 							<textarea
 								class="flex-1 p-3 font-mono text-sm bg-card border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"

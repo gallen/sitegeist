@@ -11,7 +11,7 @@
 		"build": "npm run build:chrome",
 		"dev": "concurrently \"node ./scripts/build.mjs --watch\" \"tailwindcss -i ./src/app.css -o ./dist-chrome/app.css --watch\" \"node ./scripts/dev-server.mjs\"",
 		"typecheck": "tsc --noEmit",
-		"check": "npm run typecheck"
+		"check": "biome check --write . && npm run typecheck"
 	},
 	"dependencies": {
 		"@mariozechner/jailjs": "^0.1.0",
@@ -32,6 +32,7 @@
 		"xlsx": "^0.18.5"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.2.5",
 		"@tailwindcss/cli": "^4.0.0-beta.14",
 		"@types/chrome": "^0.1.16",
 		"@types/webextension-polyfill": "^0.12.4",

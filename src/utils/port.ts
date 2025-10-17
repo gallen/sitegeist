@@ -96,7 +96,10 @@ export type ResponseForRequest<TRequest extends SidepanelToBackgroundMessage> = 
  * Runtime mapping from request type to response type.
  * Used to determine which response message to wait for.
  */
-export const REQUEST_TO_RESPONSE_TYPE: Record<SidepanelToBackgroundMessage["type"], BackgroundToSidepanelMessage["type"]> = {
+export const REQUEST_TO_RESPONSE_TYPE: Record<
+	SidepanelToBackgroundMessage["type"],
+	BackgroundToSidepanelMessage["type"]
+> = {
 	acquireLock: "lockResult",
 	getLockedSessions: "lockedSessions",
 };

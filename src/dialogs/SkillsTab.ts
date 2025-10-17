@@ -157,9 +157,7 @@ export class SkillsTab extends SettingsTab {
 		const storage = getSitegeistStorage();
 
 		// Filter out skills that are in conflicts and not selected
-		const conflictNames = new Set(
-			this.importConflicts.filter((c) => !c.selected).map((c) => c.skill.name),
-		);
+		const conflictNames = new Set(this.importConflicts.filter((c) => !c.selected).map((c) => c.skill.name));
 		const toImport = skills.filter((s) => !conflictNames.has(s.name));
 
 		let imported = 0;
@@ -174,8 +172,7 @@ export class SkillsTab extends SettingsTab {
 	}
 
 	toggleConflictSelection(index: number) {
-		this.importConflicts[index].selected =
-			!this.importConflicts[index].selected;
+		this.importConflicts[index].selected = !this.importConflicts[index].selected;
 		this.requestUpdate();
 	}
 
@@ -246,11 +243,7 @@ export class SkillsTab extends SettingsTab {
 					label: "Short Description",
 					type: "text",
 					value: skill.shortDescription,
-					onInput: (e) =>
-						this.updateEditField(
-							"shortDescription",
-							(e.target as HTMLInputElement).value,
-						),
+					onInput: (e) => this.updateEditField("shortDescription", (e.target as HTMLInputElement).value),
 				})}
 
 				<div class="space-y-2">

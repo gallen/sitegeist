@@ -1,4 +1,4 @@
-import { LitElement, html, type TemplateResult } from "lit";
+import { html, LitElement, type TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
 import * as THREE from "three";
 
@@ -15,7 +15,6 @@ export class OrbAnimation extends LitElement {
 	private time = 0;
 
 	protected createRenderRoot(): HTMLElement | ShadowRoot {
-		// @ts-ignore - Returning this to avoid shadow DOM
 		return this;
 	}
 
@@ -54,7 +53,7 @@ export class OrbAnimation extends LitElement {
 			75,
 			this.container.clientWidth / this.container.clientHeight,
 			0.1,
-			1000
+			1000,
 		);
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
@@ -171,7 +170,7 @@ export class OrbAnimation extends LitElement {
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
-			// @ts-expect-error
+			// @ts-expect-error - BackSide exists at runtime but may not be in types
 			side: THREE.BackSide,
 			depthWrite: false,
 		});

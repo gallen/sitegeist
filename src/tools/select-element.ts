@@ -6,10 +6,10 @@ import {
 	type ToolRenderer,
 	type ToolRenderResult,
 } from "@mariozechner/pi-web-ui";
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Loader2, MousePointer2 } from "lucide";
-import { SELECT_ELEMENT_DESCRIPTION } from "../prompts/tool-prompts.js";
+import { SELECT_ELEMENT_DESCRIPTION } from "../prompts/prompts.js";
 import "../utils/i18n-extension.js";
 
 // Cross-browser API compatibility
@@ -75,11 +75,10 @@ async function createElementPickerOverlay(message?: string) {
 	window.__sitegeistElementPicker = true;
 
 	return new Promise((resolve) => {
-
-	// Create overlay container
-	const overlay = document.createElement("div");
-	overlay.id = "sitegeist-element-picker";
-	overlay.style.cssText = `
+		// Create overlay container
+		const overlay = document.createElement("div");
+		overlay.id = "sitegeist-element-picker";
+		overlay.style.cssText = `
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -89,9 +88,9 @@ async function createElementPickerOverlay(message?: string) {
 		pointer-events: none;
 	`;
 
-	// Create highlight element
-	const highlight = document.createElement("div");
-	highlight.style.cssText = `
+		// Create highlight element
+		const highlight = document.createElement("div");
+		highlight.style.cssText = `
 		position: absolute;
 		pointer-events: none;
 		border: 2px solid #3b82f6;
@@ -99,11 +98,11 @@ async function createElementPickerOverlay(message?: string) {
 		transition: all 0.1s ease;
 		box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
 	`;
-	overlay.appendChild(highlight);
+		overlay.appendChild(highlight);
 
-	// Create tooltip
-	const tooltip = document.createElement("div");
-	tooltip.style.cssText = `
+		// Create tooltip
+		const tooltip = document.createElement("div");
+		tooltip.style.cssText = `
 		position: absolute;
 		pointer-events: none;
 		background: #1f2937;
@@ -119,11 +118,11 @@ async function createElementPickerOverlay(message?: string) {
 		overflow: hidden;
 		text-overflow: ellipsis;
 	`;
-	overlay.appendChild(tooltip);
+		overlay.appendChild(tooltip);
 
-	// Create instruction banner
-	const banner = document.createElement("div");
-	banner.style.cssText = `
+		// Create instruction banner
+		const banner = document.createElement("div");
+		banner.style.cssText = `
 		position: fixed;
 		top: 20px;
 		left: 50%;
@@ -142,14 +141,13 @@ async function createElementPickerOverlay(message?: string) {
 		gap: 12px;
 	`;
 
-	const bannerText = document.createElement("span");
-	bannerText.textContent =
-		message || "Click element to select • ↑↓ to change depth";
-	banner.appendChild(bannerText);
+		const bannerText = document.createElement("span");
+		bannerText.textContent = message || "Click element to select • ↑↓ to change depth";
+		banner.appendChild(bannerText);
 
-	const cancelButton = document.createElement("button");
-	cancelButton.textContent = "Cancel (ESC)";
-	cancelButton.style.cssText = `
+		const cancelButton = document.createElement("button");
+		cancelButton.textContent = "Cancel (ESC)";
+		cancelButton.style.cssText = `
 		background: #374151;
 		border: none;
 		color: white;
@@ -159,265 +157,256 @@ async function createElementPickerOverlay(message?: string) {
 		cursor: pointer;
 		transition: background 0.2s;
 	`;
-	cancelButton.addEventListener("mouseenter", () => {
-		cancelButton.style.background = "#4b5563";
-	});
-	cancelButton.addEventListener("mouseleave", () => {
-		cancelButton.style.background = "#374151";
-	});
-	banner.appendChild(cancelButton);
+		cancelButton.addEventListener("mouseenter", () => {
+			cancelButton.style.background = "#4b5563";
+		});
+		cancelButton.addEventListener("mouseleave", () => {
+			cancelButton.style.background = "#374151";
+		});
+		banner.appendChild(cancelButton);
 
-	document.body.appendChild(banner);
-	document.body.appendChild(overlay);
+		document.body.appendChild(banner);
+		document.body.appendChild(overlay);
 
-	let isSelecting = true;
-	let currentElement: Element | null = null;
-	let ancestorIndex = 0; // 0 = deepest element, higher = ancestors
+		let isSelecting = true;
+		let currentElement: Element | null = null;
+		let ancestorIndex = 0; // 0 = deepest element, higher = ancestors
 
-	// Generate optimized CSS selector
-	function generateSelector(element: Element): string {
-		if (element.id) {
-			return `#${CSS.escape(element.id)}`;
-		}
-
-		const path: string[] = [];
-		let current: Element | null = element;
-
-		while (current && current !== document.body) {
-			let selector = current.tagName.toLowerCase();
-
-			if (current.className && typeof current.className === "string") {
-				const classes = current.className
-					.split(/\s+/)
-					.filter((c) => c && !c.startsWith("sitegeist-"));
-				if (classes.length > 0) {
-					selector += `.${classes.map((c) => CSS.escape(c)).join(".")}`;
-				}
+		// Generate optimized CSS selector
+		function generateSelector(element: Element): string {
+			if (element.id) {
+				return `#${CSS.escape(element.id)}`;
 			}
 
-			// Add nth-child if needed for uniqueness
-			if (current.parentElement) {
-				const siblings = Array.from(current.parentElement.children).filter(
-					(el) => el.tagName === current!.tagName,
-				);
-				if (siblings.length > 1) {
-					const index = siblings.indexOf(current) + 1;
-					selector += `:nth-child(${index})`;
+			const path: string[] = [];
+			let current: Element | null = element;
+
+			while (current && current !== document.body) {
+				let selector = current.tagName.toLowerCase();
+
+				if (current.className && typeof current.className === "string") {
+					const classes = current.className.split(/\s+/).filter((c) => c && !c.startsWith("sitegeist-"));
+					if (classes.length > 0) {
+						selector += `.${classes.map((c) => CSS.escape(c)).join(".")}`;
+					}
 				}
+
+				// Add nth-child if needed for uniqueness
+				if (current.parentElement) {
+					const siblings = Array.from(current.parentElement.children).filter(
+						(el) => el.tagName === current!.tagName,
+					);
+					if (siblings.length > 1) {
+						const index = siblings.indexOf(current) + 1;
+						selector += `:nth-child(${index})`;
+					}
+				}
+
+				path.unshift(selector);
+				current = current.parentElement;
 			}
 
-			path.unshift(selector);
-			current = current.parentElement;
+			return path.join(" > ");
 		}
 
-		return path.join(" > ");
-	}
-
-	// Generate XPath
-	function generateXPath(element: Element): string {
-		if (element.id) {
-			return `//*[@id="${element.id}"]`;
-		}
-
-		const path: string[] = [];
-		let current: Element | null = element;
-
-		while (current && current !== document.documentElement) {
-			let index = 0;
-			let sibling = current.previousElementSibling;
-
-			while (sibling) {
-				if (sibling.tagName === current.tagName) {
-					index++;
-				}
-				sibling = sibling.previousElementSibling;
+		// Generate XPath
+		function generateXPath(element: Element): string {
+			if (element.id) {
+				return `//*[@id="${element.id}"]`;
 			}
 
-			const tagName = current.tagName.toLowerCase();
-			const position = index > 0 ? `[${index + 1}]` : "";
-			path.unshift(`${tagName}${position}`);
-			current = current.parentElement;
-		}
+			const path: string[] = [];
+			let current: Element | null = element;
 
-		return `/${path.join("/")}`;
-	}
+			while (current && current !== document.documentElement) {
+				let index = 0;
+				let sibling = current.previousElementSibling;
 
-	// Get element info
-	function getElementInfo(element: Element): ElementInfo {
-		const rect = element.getBoundingClientRect();
-		const styles = window.getComputedStyle(element);
-
-		// Get relevant computed styles
-		const computedStyles: Record<string, string> = {
-			display: styles.display,
-			position: styles.position,
-			width: styles.width,
-			height: styles.height,
-			color: styles.color,
-			backgroundColor: styles.backgroundColor,
-			fontSize: styles.fontSize,
-			fontWeight: styles.fontWeight,
-		};
-
-		// Get attributes
-		const attributes: Record<string, string> = {};
-		for (const attr of element.attributes) {
-			attributes[attr.name] = attr.value;
-		}
-
-		// Get parent chain
-		const parentChain: string[] = [];
-		let current: Element | null = element;
-		while (current && current !== document.documentElement) {
-			parentChain.unshift(current.tagName.toLowerCase());
-			current = current.parentElement;
-		}
-
-		// Get text content (truncated)
-		const text = element.textContent?.trim().substring(0, 500) || "";
-
-		// Get HTML (truncated)
-		const html = element.outerHTML.substring(0, 1000);
-
-		return {
-			selector: generateSelector(element),
-			xpath: generateXPath(element),
-			html,
-			tagName: element.tagName.toLowerCase(),
-			attributes,
-			text,
-			boundingBox: {
-				x: rect.x + window.scrollX,
-				y: rect.y + window.scrollY,
-				width: rect.width,
-				height: rect.height,
-			},
-			computedStyles,
-			parentChain,
-		};
-	}
-
-	// Update highlight position
-	function updateHighlight(element: Element) {
-		const rect = element.getBoundingClientRect();
-		highlight.style.top = `${rect.top}px`;
-		highlight.style.left = `${rect.left}px`;
-		highlight.style.width = `${rect.width}px`;
-		highlight.style.height = `${rect.height}px`;
-
-		// Update tooltip
-		const tagName = element.tagName.toLowerCase();
-		const id = element.id ? `#${element.id}` : "";
-		const className = element.className
-			? `.${element.className.toString().split(/\s+/).join(".")}`
-			: "";
-		tooltip.textContent = `${tagName}${id}${className}`;
-
-		// Position tooltip above or below element
-		const tooltipRect = tooltip.getBoundingClientRect();
-		if (rect.top > tooltipRect.height + 10) {
-			tooltip.style.top = `${rect.top - tooltipRect.height - 5}px`;
-		} else {
-			tooltip.style.top = `${rect.bottom + 5}px`;
-		}
-		tooltip.style.left = `${Math.min(rect.left, window.innerWidth - tooltipRect.width - 10)}px`;
-	}
-
-	// Get ancestors of an element up to body
-	function getAncestors(element: Element): Element[] {
-		const ancestors: Element[] = [];
-		let current: Element | null = element;
-		while (current && current !== document.body && current !== document.documentElement) {
-			ancestors.push(current);
-			current = current.parentElement;
-		}
-		return ancestors;
-	}
-
-	// Get all elements at a point (penetrating through covering elements like <a> tags)
-	function getAllElementsAtPoint(x: number, y: number): Element[] {
-		const elements: Element[] = [];
-		const elementsToHide: Array<{ element: HTMLElement; originalPointerEvents: string }> = [];
-		const seenElements = new Set<Element>();
-		const MAX_DEPTH = 50; // Prevent infinite loops
-		let iterations = 0;
-
-		try {
-			let element = document.elementFromPoint(x, y);
-
-			// Keep getting elements and temporarily hiding them to get elements beneath
-			while (element && element !== document.documentElement && element !== document.body) {
-				// Safety check: prevent infinite loops
-				if (iterations++ > MAX_DEPTH) {
-					console.warn('[select-element] Reached max depth, stopping element penetration');
-					break;
+				while (sibling) {
+					if (sibling.tagName === current.tagName) {
+						index++;
+					}
+					sibling = sibling.previousElementSibling;
 				}
 
-				// Skip our overlay elements
-				if (
-					element === overlay ||
-					overlay.contains(element) ||
-					element === banner ||
-					banner.contains(element)
-				) {
-					break;
-				}
-
-				// Check if we've already seen this element (infinite loop protection)
-				if (seenElements.has(element)) {
-					console.warn('[select-element] Already seen element, stopping to prevent loop');
-					break;
-				}
-
-				seenElements.add(element);
-				elements.push(element);
-
-				// Hide this element temporarily and get the next one beneath it
-				if (element instanceof HTMLElement) {
-					const original = element.style.pointerEvents;
-					elementsToHide.push({ element, originalPointerEvents: original });
-					element.style.pointerEvents = 'none';
-				}
-
-				const nextElement = document.elementFromPoint(x, y);
-
-				// If we get the same element back, we're stuck
-				if (nextElement === element) {
-					console.warn('[select-element] Got same element back, stopping');
-					break;
-				}
-
-				element = nextElement;
+				const tagName = current.tagName.toLowerCase();
+				const position = index > 0 ? `[${index + 1}]` : "";
+				path.unshift(`${tagName}${position}`);
+				current = current.parentElement;
 			}
 
-			return elements;
-		} finally {
-			// Restore pointer events for all elements we modified
-			for (const { element, originalPointerEvents } of elementsToHide) {
-				element.style.pointerEvents = originalPointerEvents;
+			return `/${path.join("/")}`;
+		}
+
+		// Get element info
+		function getElementInfo(element: Element): ElementInfo {
+			const rect = element.getBoundingClientRect();
+			const styles = window.getComputedStyle(element);
+
+			// Get relevant computed styles
+			const computedStyles: Record<string, string> = {
+				display: styles.display,
+				position: styles.position,
+				width: styles.width,
+				height: styles.height,
+				color: styles.color,
+				backgroundColor: styles.backgroundColor,
+				fontSize: styles.fontSize,
+				fontWeight: styles.fontWeight,
+			};
+
+			// Get attributes
+			const attributes: Record<string, string> = {};
+			for (const attr of element.attributes) {
+				attributes[attr.name] = attr.value;
+			}
+
+			// Get parent chain
+			const parentChain: string[] = [];
+			let current: Element | null = element;
+			while (current && current !== document.documentElement) {
+				parentChain.unshift(current.tagName.toLowerCase());
+				current = current.parentElement;
+			}
+
+			// Get text content (truncated)
+			const text = element.textContent?.trim().substring(0, 500) || "";
+
+			// Get HTML (truncated)
+			const html = element.outerHTML.substring(0, 1000);
+
+			return {
+				selector: generateSelector(element),
+				xpath: generateXPath(element),
+				html,
+				tagName: element.tagName.toLowerCase(),
+				attributes,
+				text,
+				boundingBox: {
+					x: rect.x + window.scrollX,
+					y: rect.y + window.scrollY,
+					width: rect.width,
+					height: rect.height,
+				},
+				computedStyles,
+				parentChain,
+			};
+		}
+
+		// Update highlight position
+		function updateHighlight(element: Element) {
+			const rect = element.getBoundingClientRect();
+			highlight.style.top = `${rect.top}px`;
+			highlight.style.left = `${rect.left}px`;
+			highlight.style.width = `${rect.width}px`;
+			highlight.style.height = `${rect.height}px`;
+
+			// Update tooltip
+			const tagName = element.tagName.toLowerCase();
+			const id = element.id ? `#${element.id}` : "";
+			const className = element.className ? `.${element.className.toString().split(/\s+/).join(".")}` : "";
+			tooltip.textContent = `${tagName}${id}${className}`;
+
+			// Position tooltip above or below element
+			const tooltipRect = tooltip.getBoundingClientRect();
+			if (rect.top > tooltipRect.height + 10) {
+				tooltip.style.top = `${rect.top - tooltipRect.height - 5}px`;
+			} else {
+				tooltip.style.top = `${rect.bottom + 5}px`;
+			}
+			tooltip.style.left = `${Math.min(rect.left, window.innerWidth - tooltipRect.width - 10)}px`;
+		}
+
+		// Get ancestors of an element up to body
+		function getAncestors(element: Element): Element[] {
+			const ancestors: Element[] = [];
+			let current: Element | null = element;
+			while (current && current !== document.body && current !== document.documentElement) {
+				ancestors.push(current);
+				current = current.parentElement;
+			}
+			return ancestors;
+		}
+
+		// Get all elements at a point (penetrating through covering elements like <a> tags)
+		function getAllElementsAtPoint(x: number, y: number): Element[] {
+			const elements: Element[] = [];
+			const elementsToHide: Array<{ element: HTMLElement; originalPointerEvents: string }> = [];
+			const seenElements = new Set<Element>();
+			const MAX_DEPTH = 50; // Prevent infinite loops
+			let iterations = 0;
+
+			try {
+				let element = document.elementFromPoint(x, y);
+
+				// Keep getting elements and temporarily hiding them to get elements beneath
+				while (element && element !== document.documentElement && element !== document.body) {
+					// Safety check: prevent infinite loops
+					if (iterations++ > MAX_DEPTH) {
+						console.warn("[select-element] Reached max depth, stopping element penetration");
+						break;
+					}
+
+					// Skip our overlay elements
+					if (element === overlay || overlay.contains(element) || element === banner || banner.contains(element)) {
+						break;
+					}
+
+					// Check if we've already seen this element (infinite loop protection)
+					if (seenElements.has(element)) {
+						console.warn("[select-element] Already seen element, stopping to prevent loop");
+						break;
+					}
+
+					seenElements.add(element);
+					elements.push(element);
+
+					// Hide this element temporarily and get the next one beneath it
+					if (element instanceof HTMLElement) {
+						const original = element.style.pointerEvents;
+						elementsToHide.push({ element, originalPointerEvents: original });
+						element.style.pointerEvents = "none";
+					}
+
+					const nextElement = document.elementFromPoint(x, y);
+
+					// If we get the same element back, we're stuck
+					if (nextElement === element) {
+						console.warn("[select-element] Got same element back, stopping");
+						break;
+					}
+
+					element = nextElement;
+				}
+
+				return elements;
+			} finally {
+				// Restore pointer events for all elements we modified
+				for (const { element, originalPointerEvents } of elementsToHide) {
+					element.style.pointerEvents = originalPointerEvents;
+				}
 			}
 		}
-	}
 
-	// Mouse move handler
-	function handleMouseMove(e: MouseEvent) {
-		if (!isSelecting) return;
+		// Mouse move handler
+		function handleMouseMove(e: MouseEvent) {
+			if (!isSelecting) return;
 
-		// Get all elements at cursor position (penetrating through covering elements)
-		const elementsAtPoint = getAllElementsAtPoint(e.clientX, e.clientY);
+			// Get all elements at cursor position (penetrating through covering elements)
+			const elementsAtPoint = getAllElementsAtPoint(e.clientX, e.clientY);
 
-		if (elementsAtPoint.length === 0) {
-			return;
+			if (elementsAtPoint.length === 0) {
+				return;
+			}
+
+			// Use the first (topmost) element as the current element
+			const element = elementsAtPoint[0];
+
+			// Reset to deepest element on mouse move
+			currentElement = element;
+			ancestorIndex = 0;
+			updateHighlight(element);
 		}
-
-		// Use the first (topmost) element as the current element
-		const element = elementsAtPoint[0];
-
-		// Reset to deepest element on mouse move
-		currentElement = element;
-		ancestorIndex = 0;
-		updateHighlight(element);
-	}
 
 		// Click handler
 		function handleClick(e: MouseEvent) {
@@ -533,9 +522,7 @@ async function createElementPickerOverlay(message?: string) {
 // TOOL
 // ============================================================================
 
-export class SelectElementTool
-	implements AgentTool<typeof selectElementSchema, SelectElementResult>
-{
+export class SelectElementTool implements AgentTool<typeof selectElementSchema, SelectElementResult> {
 	label = "Select Element";
 	name = "select_element";
 	description = SELECT_ELEMENT_DESCRIPTION;
@@ -569,23 +556,17 @@ export class SelectElementTool
 				tab.url?.startsWith("moz-extension://") ||
 				tab.url?.startsWith("about:")
 			) {
-				throw new Error(
-					`Cannot select elements on ${tab.url}. Extension pages and internal URLs are protected.`,
-				);
+				throw new Error(`Cannot select elements on ${tab.url}. Extension pages and internal URLs are protected.`);
 			}
 
 			// Build the script code - just call the async function and return result
 			const scriptCode = `(${createElementPickerOverlay.toString()})(${JSON.stringify(args.message || "")})`;
 
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			let results: any[];
 
 			try {
 				// Inject using userScripts.execute (USER_SCRIPT world)
-				if (
-					browser.userScripts &&
-					typeof browser.userScripts.execute === "function"
-				) {
+				if (browser.userScripts && typeof browser.userScripts.execute === "function") {
 					// Execute the script and get result
 					const executePromise = browser.userScripts.execute({
 						target: { tabId: tab.id, allFrames: false },
@@ -647,10 +628,7 @@ export class SelectElementTool
 				}
 
 				if (result.text) {
-					const displayText =
-						result.text.length > 100
-							? `${result.text.substring(0, 100)}...`
-							: result.text;
+					const displayText = result.text.length > 100 ? `${result.text.substring(0, 100)}...` : result.text;
 					output += `Text: ${displayText}\n`;
 				}
 
@@ -663,10 +641,7 @@ export class SelectElementTool
 				};
 			} catch (error: unknown) {
 				const err = error as Error;
-				console.error(
-					"[select-element] Caught error, re-throwing:",
-					err.message,
-				);
+				console.error("[select-element] Caught error, re-throwing:", err.message);
 				throw err;
 			}
 		} catch (error: unknown) {
@@ -684,23 +659,14 @@ export const selectElementTool = new SelectElementTool();
 // RENDERER
 // ============================================================================
 
-export const selectElementRenderer: ToolRenderer<
-	SelectElementParams,
-	SelectElementResult
-> = {
+export const selectElementRenderer: ToolRenderer<SelectElementParams, SelectElementResult> = {
 	render(
 		params: SelectElementParams | undefined,
 		result: ToolResultMessage<SelectElementResult> | undefined,
 		isStreaming?: boolean,
 	): ToolRenderResult {
 		// Determine state
-		const state = result
-			? result.isError
-				? "error"
-				: "complete"
-			: params
-				? "inprogress"
-				: "inprogress";
+		const state = result ? (result.isError ? "error" : "complete") : params ? "inprogress" : "inprogress";
 
 		// Create refs for collapsible section
 		const detailsContentRef = createRef<HTMLDivElement>();
@@ -744,8 +710,9 @@ export const selectElementRenderer: ToolRenderer<
 							</div>
 
 							<!-- Attributes -->
-							${Object.keys(el.attributes).length > 0
-								? html`
+							${
+								Object.keys(el.attributes).length > 0
+									? html`
 										<div>
 											<div class="text-xs text-muted-foreground mb-1">
 												Attributes
@@ -762,23 +729,24 @@ export const selectElementRenderer: ToolRenderer<
 											</div>
 										</div>
 								  `
-								: ""}
+									: ""
+							}
 
 							<!-- Text Content -->
-							${el.text
-								? html`
+							${
+								el.text
+									? html`
 										<div>
 											<div class="text-xs text-muted-foreground mb-1">
 												Text Content
 											</div>
 											<div class="text-xs text-muted-foreground">
-												${el.text.substring(0, 200)}${el.text.length > 200
-													? "..."
-													: ""}
+												${el.text.substring(0, 200)}${el.text.length > 200 ? "..." : ""}
 											</div>
 										</div>
 								  `
-								: ""}
+									: ""
+							}
 
 							<!-- Bounding Box -->
 							<div>
@@ -791,16 +759,15 @@ export const selectElementRenderer: ToolRenderer<
 										${Math.round(el.boundingBox.y)})
 									</div>
 									<div>
-										Size: ${Math.round(el.boundingBox.width)}x${Math.round(
-											el.boundingBox.height,
-										)}
+										Size: ${Math.round(el.boundingBox.width)}x${Math.round(el.boundingBox.height)}
 									</div>
 								</div>
 							</div>
 
 							<!-- Computed Styles (selected ones) -->
-							${Object.keys(el.computedStyles).length > 0
-								? html`
+							${
+								Object.keys(el.computedStyles).length > 0
+									? html`
 										<div>
 											<div class="text-xs text-muted-foreground mb-1">
 												Computed Styles
@@ -817,11 +784,13 @@ export const selectElementRenderer: ToolRenderer<
 											</div>
 										</div>
 								  `
-								: ""}
+									: ""
+							}
 
 							<!-- Parent Chain -->
-							${el.parentChain.length > 0
-								? html`
+							${
+								el.parentChain.length > 0
+									? html`
 										<div>
 											<div class="text-xs text-muted-foreground mb-1">
 												Parent Chain
@@ -831,7 +800,8 @@ export const selectElementRenderer: ToolRenderer<
 											</div>
 										</div>
 								  `
-								: ""}
+									: ""
+							}
 						</div>
 					</div>
 				`,

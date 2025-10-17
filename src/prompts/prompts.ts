@@ -53,6 +53,13 @@ Help users automate web tasks, extract data from pages, process files, and creat
 - CRITICAL: Tool outputs are HIDDEN from the user by default. If you reference data from the output in your response, you MUST repeat the relevant parts in your message so the user can see it (possibly in your own words if it is a non-technical user)
 - Example: Parse Excel file, generate Chart.js visualization, complex math
 
+**browser_repl** - Execute JavaScript with browser orchestration (navigate + extract in one script)
+- Use for: Multi-page scraping workflows, complex browser automation requiring loops/state
+- Has access to: browserjs() and navigate() helpers for browser control, plus all javascript_repl features
+- Enables writing loops that navigate pages and extract data in a single tool call
+- Example: Scrape products from multiple pages with pagination
+- See tool description for detailed browserjs() and navigate() usage
+
 **artifacts** - Create persistent workspace files that live alongside the conversation
 - IMPORTANT: Artifacts persist throughout the session and can be updated multiple times
 - Primary uses:
@@ -294,6 +301,85 @@ Examples:
 - Switch to tab 123: { switchToTab: 123 }
 
 CRITICAL: Use this instead of window.location, history.back/forward in browser_javascript.`;
+
+// ============================================================================
+// JavaScript REPL Tool
+// ============================================================================
+
+export const JAVASCRIPT_REPL_DESCRIPTION = `Execute JavaScript code in a sandboxed environment with browser orchestration capabilities.
+
+**Primary use cases:**
+1. **Browser orchestration** - Combine navigation and page interaction in a single script using browserjs() and navigate() helpers
+2. **Data processing** - Calculations, transformations, file parsing
+3. **Chart generation** - Create visualizations using libraries like Chart.js
+
+**Browser orchestration helpers:**
+
+- await browserjs(func, ...args) - Execute function in the active tab's page context
+  * Function runs with full access to page DOM, window, and all browser APIs
+  * Skills auto-inject based on current tab URL
+  * Parameters must be JSON-serializable (primitives, objects, arrays)
+  * Return values must be JSON-serializable
+  * Example: const title = await browserjs(() => document.title)
+  * Example with args: const count = await browserjs((sel) => document.querySelectorAll(sel).length, '.product')
+  * Cannot access closure variables - pass all needed data as parameters
+
+- await navigate(args) - Navigate browser and wait for page load
+  * Same parameters as navigate tool: { url }, { history: "back" }, etc.
+  * Waits for DOMContentLoaded before returning
+  * Returns { finalUrl, title, skills }
+  * Example: await navigate({ url: 'https://example.com' })
+
+**Multi-page orchestration example:**
+\`\`\`javascript
+const products = [];
+for (let page = 1; page <= 3; page++) {
+  // Navigate to next page
+  await navigate({ url: \`https://store.com/page/\${page}\` });
+
+  // Extract data from page
+  const pageData = await browserjs(() => {
+    return Array.from(document.querySelectorAll('.product')).map(p => ({
+      name: p.querySelector('h2').textContent,
+      price: p.querySelector('.price').textContent
+    }));
+  });
+
+  products.push(...pageData);
+}
+
+// Save results
+await createOrUpdateArtifact('products.json', products);
+return \`Collected \${products.length} products\`;
+\`\`\`
+
+**Available runtime functions:**
+- await createArtifact(id, content, title?, description?) - Create new artifact
+- await updateArtifact(id, content) - Update existing artifact
+- await getArtifact(id) - Retrieve artifact content
+- await deleteArtifact(id) - Delete artifact
+- await listAttachments() - List user-attached files
+- await readTextAttachment(fileName) - Read text file
+- await readBinaryAttachment(fileName) - Read binary file as Uint8Array
+- console.log/error/warn() - Output to console (visible in tool result)
+
+**Execution details:**
+- Clean sandbox environment (no page access unless using browserjs())
+- Can import ESM libraries via dynamic import
+- 120 second timeout for entire script execution
+- Console output tagged with [repl] or [browserjs] prefix
+- Artifacts persist across browserjs() calls within same script
+
+**When to use:**
+- Multi-page scraping workflows (navigate → extract → repeat)
+- Complex data processing with browser interaction
+- Scripts that need to maintain state across navigation
+- Combining calculations with page data extraction
+
+**When NOT to use:**
+- Simple text reformatting (just write in your response)
+- Single-page data extraction (use browser_javascript instead)
+- Tasks that don't require browser interaction (use browser_javascript for page-only tasks)`;
 
 // ============================================================================
 // Select Element Tool
