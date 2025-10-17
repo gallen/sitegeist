@@ -8,7 +8,7 @@ registerToolRenderer("get_current_time", new GetCurrentTimeRenderer());
 registerToolRenderer("bash", new BashRenderer());
 
 // Export sitegeist-specific REPL tool instead of web-ui default
-export { createJavaScriptReplTool, javascriptReplTool } from "./repl/javascript-repl.js";
+export { createReplTool, javascriptReplTool } from "./repl/repl.js";
 export { requestUserScriptsPermission } from "./repl/userscripts-helpers.js";
 export { SelectElementTool, selectElementTool } from "./select-element.js";
 export { skillTool } from "./skill.js";

@@ -318,8 +318,9 @@ console.log(result);
 - Critical constraint 1
 - Critical constraint 2
 
-## Library functions
-You can use the following functions in your code:
+## Helper Functions (Automatically Available)
+
+These functions are injected into the execution environment and available globally:
 
 ${runtimeProviderDescriptions.join("\n\n")}
 ```
@@ -329,7 +330,7 @@ ${runtimeProviderDescriptions.join("\n\n")}
 - Start with Purpose (one line)
 - Include "When to Use", "Environment", "Input", "Output"
 - Provide concrete examples
-- End with runtime provider injection point
+- End with "Helper Functions (Automatically Available)" section for runtime provider injection
 - Keep minimal (token efficiency)
 
 ## Current Issues & Migration Path
@@ -432,7 +433,7 @@ After updating prompts:
 
 **Tool Implementations**:
 - `/Users/badlogic/workspaces/pi-mono/packages/web-ui/src/tools/artifacts/artifacts.ts` - Artifacts tool
-- `/Users/badlogic/workspaces/sitegeist/src/tools/repl/javascript-repl.ts` - REPL tool
+- `/Users/badlogic/workspaces/sitegeist/src/tools/repl/repl.ts` - REPL tool
 
 **Integration**:
 - `/Users/badlogic/workspaces/sitegeist/src/sidepanel.ts` - Tool and provider composition

@@ -114,7 +114,7 @@ const navigateRenderer: ToolRenderer<NavigateParams, NavigateResult> = {
 - `artifacts` - File artifact management (ArtifactsToolRenderer)
 
 **sitegeist Extension:**
-- `browser_javascript` - Page JavaScript execution with collapsible code
+- `repl` - Page JavaScript execution with collapsible code
 - `skill` - Skill management operations (list, get, create, update, delete, patch)
 - `navigate` - Page navigation with favicon display
 - `debugger` - Browser debugger tool

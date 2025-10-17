@@ -50,7 +50,7 @@ export async function requestUserScriptsPermission(): Promise<{
 				return {
 					granted: false,
 					message:
-						"userScripts permission denied. The browser_javascript tool requires this permission to execute code safely.",
+						"userScripts permission denied. The browserjs() runtime requires this permission to execute code safely.",
 				};
 			}
 		} catch (error) {

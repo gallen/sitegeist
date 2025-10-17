@@ -2,7 +2,7 @@ import type { SandboxRuntimeProvider } from "@mariozechner/pi-web-ui";
 import { NATIVE_INPUT_EVENTS_DESCRIPTION } from "../prompts/prompts.js";
 
 /**
- * Provides native input event functions to browser_javascript using Chrome Debugger API.
+ * Provides native input event functions to JavaScript REPL using Chrome Debugger API.
  * Dispatches REAL browser events (isTrusted: true) for automation of anti-bot sites.
  * Operates on the currently active tab.
  */

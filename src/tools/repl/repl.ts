@@ -15,7 +15,7 @@ import {
 import { type Static, Type } from "@sinclair/typebox";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Code } from "lucide";
-import { JAVASCRIPT_REPL_DESCRIPTION } from "../../prompts/prompts.js";
+import { REPL_DESCRIPTION } from "../../prompts/prompts.js";
 import "../../utils/i18n-extension.js";
 
 // Execute JavaScript code with attachments using SandboxedIframe
@@ -101,7 +101,7 @@ export async function executeJavaScript(
 	}
 }
 
-export type JavaScriptReplToolResult = {
+export type ReplToolResult = {
 	files?:
 		| {
 				fileName: string;
@@ -111,7 +111,7 @@ export type JavaScriptReplToolResult = {
 		| undefined;
 };
 
-const javascriptReplSchema = Type.Object({
+const replSchema = Type.Object({
 	title: Type.String({
 		description:
 			"Brief title describing what the code snippet tries to achieve in active form, e.g. 'Calculating sum'",
@@ -119,9 +119,9 @@ const javascriptReplSchema = Type.Object({
 	code: Type.String({ description: "JavaScript code to execute" }),
 });
 
-export type JavaScriptReplParams = Static<typeof javascriptReplSchema>;
+export type ReplParams = Static<typeof replSchema>;
 
-interface JavaScriptReplResult {
+interface ReplResult {
 	output?: string;
 	files?: Array<{
 		fileName: string;
@@ -131,18 +131,18 @@ interface JavaScriptReplResult {
 	}>;
 }
 
-export function createJavaScriptReplTool(): AgentTool<typeof javascriptReplSchema, JavaScriptReplToolResult> & {
+export function createReplTool(): AgentTool<typeof replSchema, ReplToolResult> & {
 	runtimeProvidersFactory?: () => SandboxRuntimeProvider[];
 	sandboxUrlProvider?: () => string;
 } {
 	return {
-		label: "Browser REPL",
-		name: "browser_repl",
+		label: "JavaScript REPL",
+		name: "repl",
 		runtimeProvidersFactory: () => [], // default to empty array
 		sandboxUrlProvider: undefined, // optional, for browser extensions
-		description: JAVASCRIPT_REPL_DESCRIPTION,
-		parameters: javascriptReplSchema,
-		execute: async function (_toolCallId: string, args: Static<typeof javascriptReplSchema>, signal?: AbortSignal) {
+		description: REPL_DESCRIPTION,
+		parameters: replSchema,
+		execute: async function (_toolCallId: string, args: Static<typeof replSchema>, signal?: AbortSignal) {
 			const result = await executeJavaScript(
 				args.code,
 				this.runtimeProvidersFactory?.() ?? [],
@@ -195,12 +195,12 @@ export function createJavaScriptReplTool(): AgentTool<typeof javascriptReplSchem
 }
 
 // Export a default instance for backward compatibility
-export const javascriptReplTool = createJavaScriptReplTool();
+export const javascriptReplTool = createReplTool();
 
-export const javascriptReplRenderer: ToolRenderer<JavaScriptReplParams, JavaScriptReplResult> = {
+export const javascriptReplRenderer: ToolRenderer<ReplParams, ReplResult> = {
 	render(
-		params: JavaScriptReplParams | undefined,
-		result: ToolResultMessage<JavaScriptReplResult> | undefined,
+		params: ReplParams | undefined,
+		result: ToolResultMessage<ReplResult> | undefined,
 		isStreaming?: boolean,
 	): ToolRenderResult {
 		// Determine status

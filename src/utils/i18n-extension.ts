@@ -19,7 +19,7 @@ declare module "@mariozechner/mini-lit" {
 		"Permission request failed": string;
 		"JavaScript Execution Permission Required": string;
 		"This extension needs permission to execute JavaScript code on web pages": string;
-		"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.": string;
+		"The JavaScript REPL tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.": string;
 		"The AI can read and modify web page content when you ask it to": string;
 		"Code runs in an isolated environment with security safeguards": string;
 		"Network access is blocked to prevent data exfiltration": string;
@@ -84,8 +84,8 @@ const sitegeistTranslations = {
 		"JavaScript Execution Permission Required": "JavaScript Execution Permission Required",
 		"This extension needs permission to execute JavaScript code on web pages":
 			"This extension needs permission to execute JavaScript code on web pages",
-		"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
-			"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.",
+		"The JavaScript REPL tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
+			"The JavaScript REPL tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.",
 		"The AI can read and modify web page content when you ask it to":
 			"The AI can read and modify web page content when you ask it to",
 		"Code runs in an isolated environment with security safeguards":
@@ -154,8 +154,8 @@ const sitegeistTranslations = {
 		"JavaScript Execution Permission Required": "JavaScript-Ausführungsberechtigung erforderlich",
 		"This extension needs permission to execute JavaScript code on web pages":
 			"Diese Erweiterung benötigt die Berechtigung, JavaScript-Code auf Webseiten auszuführen",
-		"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
-			"Das browser_javascript-Tool ermöglicht es der KI, Webseiten in Ihrem Auftrag zu lesen und damit zu interagieren. Dies erfordert die userScripts-Berechtigung, um Code sicher auszuführen.",
+		"The JavaScript REPL tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.":
+			"Das JavaScript-REPL-Tool ermöglicht es der KI, Webseiten in Ihrem Auftrag zu lesen und damit zu interagieren. Dies erfordert die userScripts-Berechtigung, um Code sicher auszuführen.",
 		"The AI can read and modify web page content when you ask it to":
 			"Die KI kann Webseiteninhalte lesen und ändern, wenn Sie es verlangen",
 		"Code runs in an isolated environment with security safeguards":

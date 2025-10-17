@@ -156,7 +156,7 @@ LLM can use skills in two ways:
 
 **Direct usage** (if API is remembered):
 ```javascript
-// In javascript_repl or browser_javascript
+// In JavaScript REPL browserjs() call
 const messages = await slack.getMessages();
 ```
 

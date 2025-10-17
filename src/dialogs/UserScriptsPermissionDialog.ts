@@ -23,7 +23,7 @@ export class UserScriptsPermissionDialog extends PermissionDialog {
 
 	protected why(): string {
 		return i18n(
-			"The browser_javascript tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.",
+			"The JavaScript REPL tool allows the AI to read and interact with web pages on your behalf. This requires the userScripts permission to execute code safely and securely.",
 		);
 	}
 

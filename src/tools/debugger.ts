@@ -43,12 +43,12 @@ export interface DebuggerResult {
 export class DebuggerTool implements AgentTool<typeof debuggerSchema, DebuggerResult> {
 	label = "Debugger";
 	name = "debugger";
-	description = `Execute JavaScript in the MAIN world or access browser APIs that browser_javascript cannot.
+	description = `Execute JavaScript in the MAIN world or access browser APIs that browserjs() and repl tool cannot.
 
 ACTIONS:
 
 1. eval - Execute JavaScript in MAIN world context
-   USE CASES (what browser_javascript CANNOT access):
+   USE CASES (what browserjs() and repl tool CANNOT access):
    - Page's own JavaScript variables, functions, framework instances (React, Vue, Angular state)
    - window properties set by page scripts
    - All other MAIN world internals that USER_SCRIPT world cannot see
@@ -64,7 +64,7 @@ ACTIONS:
    Example:
    { action: "cookies" } - Get all cookies
 
-CRITICAL: Use browser_javascript for DOM manipulation. Use this ONLY for MAIN world access or browser APIs.`;
+CRITICAL: Use browserjs() and repl tool for DOM manipulation. Use this ONLY for MAIN world access or browser APIs.`;
 	parameters = debuggerSchema;
 
 	async execute(

@@ -34,7 +34,7 @@ import { DebuggerTool } from "./tools/debugger.js";
 import { SelectElementTool, skillTool } from "./tools/index.js";
 import { NativeInputEventsRuntimeProvider } from "./tools/NativeInputEventsRuntimeProvider.js";
 import { isToolNavigating, NavigateTool } from "./tools/navigate.js";
-import { createJavaScriptReplTool } from "./tools/repl/javascript-repl.js";
+import { createReplTool } from "./tools/repl/repl.js";
 import { BrowserJsRuntimeProvider, NavigateRuntimeProvider } from "./tools/repl/runtime-providers.js";
 import * as port from "./utils/port.js";
 import "./utils/i18n-extension.js";
@@ -311,9 +311,7 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 				extractDocumentTool.corsProxyUrl = `${corsProxyUrl}/?`;
 			}
 
-			// Create browser_repl tool with browserjs() and navigate() helpers
-			// This REPLACES browser_javascript tool (see plan.md line 288-290)
-			const replTool = createJavaScriptReplTool();
+			const replTool = createReplTool();
 			replTool.sandboxUrlProvider = () => chrome.runtime.getURL("sandbox.html");
 
 			// Extend base providers with browser orchestration capabilities
@@ -334,7 +332,7 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 			const tools: AgentTool<any, any>[] = [
 				navigateTool,
 				selectElementTool,
-				replTool, // Replaces browser_javascript
+				replTool,
 				skillTool,
 				extractDocumentTool,
 			];
