@@ -58,14 +58,18 @@ Uses `chrome.runtime.connect()` for reliable lifecycle tracking. Port disconnect
 
 Manages session locks and port connections. See implementation for details.
 
-**Key responsibilities** (lines 21-122):
-- **State**: Tracks `sessionLocks` (sessionId → windowId) and `windowPorts` (windowId → port)
-- **Port handler** (line 26): Listens for connections with name format `sidepanel:${windowId}`
-  - `acquireLock` message: Grants lock if available or owner port is dead (stale lock detection)
-  - `getLockedSessions` message: Returns all current locks for session list UI
-  - `onDisconnect`: Auto-releases all locks for the disconnected window
-- **Window cleanup** (line 88): Belt-and-suspenders cleanup when entire window closes
-- **Keyboard shortcut** (line 98): Toggles sidepanel open/close via port existence check
+**Key responsibilities**:
+- **State**: Uses `chrome.storage.session` for persistent state (survives service worker sleep):
+  - `session_locks`: sessionId → windowId mapping
+  - `sidepanel_open_windows`: array of windowIds with open sidepanels
+  - `windowPorts`: In-memory Map (windowId → port) for message delivery
+- **Port handler**: Listens for connections with name format `sidepanel:${windowId}`
+  - Marks sidepanel as open in storage on connect
+  - `acquireLock` message: Reads locks from storage, grants if available or owner port is dead
+  - `getLockedSessions` message: Reads locks from storage for session list UI
+  - `onDisconnect`: Releases all locks and marks sidepanel closed in storage
+- **Window cleanup**: Belt-and-suspenders cleanup when entire window closes (same logic as onDisconnect)
+- **Keyboard shortcut**: Reads sidepanel state from storage, toggles open/close with stale state detection
 
 #### Port Module ([utils/port.ts](../src/utils/port.ts))
 
@@ -114,21 +118,23 @@ Displays session list with Current/Locked badges. See implementation for details
 
 ### Stale Lock Detection
 
-Background checks if lock owner's port still exists before denying lock request. If owner port is dead (stale lock), lock is reassigned to requester. See [background.ts:80-81](../src/background.ts#L80-L81).
+Background checks if lock owner's port still exists before denying lock request. If owner port is dead (stale lock), lock is reassigned to requester.
 
-If service worker restarts and loses lock state, no ports exist → all locks treated as available (good default).
+**Storage-based state** survives service worker sleep, preventing lock loss during normal operation. If port is missing but storage indicates sidepanel is open, system detects and cleans up stale state.
 
-### Memory-Only Locks
+### Session Storage-Based Locks
 
-**Why**: Persisting locks to `chrome.storage` doesn't solve cleanup problem and creates stale locks across extension reloads.
+**Why**: Service workers go to sleep after ~30 seconds in Manifest V3. In-memory state is lost, breaking:
+- Session locks (allowing same session in multiple windows)
+- Keyboard shortcut toggle (always thinks sidepanel is closed)
 
-**Trade-off**: Lock loss on service worker restart is acceptable:
-- Service worker stays alive while sidepanels are open (ports keep it alive)
-- If it restarts, sidepanel port disconnects briefly and reconnects automatically
-- Port module handles automatic reconnection after ~5min inactivity disconnect (2-attempt retry logic)
-- User can always reopen session
+**Solution**: Use `chrome.storage.session` for all state:
+- Persists across service worker sleep/wake cycles
+- Automatically cleared on browser restart (prevents permanent stale locks)
+- Combined with port-based cleanup for reliable disconnect detection
+- Stale state detection: if storage says open but no port exists, clean up and recover
 
-See [utils/port.ts:173-236](../src/utils/port.ts#L173-L236) for reconnection implementation.
+Port module still handles automatic reconnection after ~5min Chrome inactivity timeout (2-attempt retry logic). See [utils/port.ts:173-236](../src/utils/port.ts#L173-L236).
 
 ## Test Scenarios
 
@@ -173,9 +179,9 @@ See [utils/port.ts:173-236](../src/utils/port.ts#L173-L236) for reconnection imp
 ## Edge Cases
 
 ### Service Worker Sleep
-**Scenario**: Background service worker goes inactive
-**Impact**: In-memory locks lost
-**Resolution**: Ports keep service worker alive while sidepanels open. If it restarts, ports reconnect and locks are re-acquired.
+**Scenario**: Background service worker goes inactive after ~30 seconds
+**Impact**: In-memory state lost (NOT prevented by ports in Manifest V3)
+**Resolution**: All state stored in `chrome.storage.session` which persists across service worker lifecycle. Keyboard shortcut and session locks work correctly after sleep.
 
 ### Extension Reload
 **Scenario**: User reloads extension
