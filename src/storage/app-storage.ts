@@ -6,6 +6,7 @@ import {
 	SessionsStore,
 	SettingsStore,
 } from "@mariozechner/pi-web-ui";
+import { CostStore } from "./stores/cost-store.js";
 import { SkillsStore } from "./stores/skills-store.js";
 
 /**
@@ -13,6 +14,7 @@ import { SkillsStore } from "./stores/skills-store.js";
  */
 export class SitegeistAppStorage extends BaseAppStorage {
 	readonly skills: SkillsStore;
+	readonly costs: CostStore;
 
 	constructor() {
 		// 1. Create all stores (no backend yet)
@@ -20,6 +22,7 @@ export class SitegeistAppStorage extends BaseAppStorage {
 		const providerKeys = new ProviderKeysStore();
 		const sessions = new SessionsStore();
 		const skills = new SkillsStore();
+		const costs = new CostStore();
 
 		// 2. Gather configs from all stores
 		const configs = [
@@ -28,12 +31,13 @@ export class SitegeistAppStorage extends BaseAppStorage {
 			providerKeys.getConfig(),
 			sessions.getConfig(),
 			skills.getConfig(),
+			costs.getConfig(),
 		];
 
 		// 3. Create backend with all configs
 		const backend = new IndexedDBStorageBackend({
 			dbName: "sitegeist-storage",
-			version: 1,
+			version: 2, // Increment version to add new store
 			stores: configs,
 		});
 
@@ -42,12 +46,14 @@ export class SitegeistAppStorage extends BaseAppStorage {
 		providerKeys.setBackend(backend);
 		sessions.setBackend(backend);
 		skills.setBackend(backend);
+		costs.setBackend(backend);
 
 		// 5. Pass base stores to parent
 		super(settings, providerKeys, sessions, backend);
 
 		// 6. Store references to sitegeist-specific stores
 		this.skills = skills;
+		this.costs = costs;
 	}
 }
 

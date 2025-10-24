@@ -18,6 +18,7 @@ import {
 } from "@mariozechner/pi-web-ui";
 import { html, render } from "lit";
 import { History, Plus, Settings } from "lucide";
+import { CostsTab } from "./dialogs/CostsTab.js";
 import { SitegeistSessionListDialog } from "./dialogs/SessionListDialog.js";
 import { SkillsTab } from "./dialogs/SkillsTab.js";
 import { UserScriptsPermissionDialog } from "./dialogs/UserScriptsPermissionDialog.js";
@@ -66,6 +67,10 @@ let currentWindowId: number;
 // Track which skills we've shown in full (skillName -> lastUpdated timestamp)
 // Reset when a new session/agent is created
 const shownSkills = new Map<string, string>();
+
+// Track which messages we've already recorded costs for (avoid duplicates)
+// Use Set with message object identity (not cleared on session switch - persists in memory)
+const recordedCostMessages = new Set<AppMessage>();
 
 // Export getter for message transformer
 export function getShownSkills(): Map<string, string> {
@@ -193,6 +198,13 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 		agentUnsubscribe();
 	}
 
+	// Mark all loaded messages as already recorded (by object identity)
+	for (const msg of initialState?.messages || []) {
+		if (msg.role === "assistant" && msg.usage?.cost?.total > 0) {
+			recordedCostMessages.add(msg);
+		}
+	}
+
 	// Reset skill tracking for new session
 	shownSkills.clear();
 
@@ -242,6 +254,21 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 					storage.settings
 						.set("lastUsedModel", event.state.model)
 						.catch((err) => console.error("Failed to save lastUsedModel:", err));
+				}
+
+				// Record costs from new assistant messages
+				for (const msg of messages) {
+					if (msg.role === "assistant" && msg.usage?.cost?.total > 0) {
+						// Use message object identity - same instance = already recorded
+						if (!recordedCostMessages.has(msg)) {
+							recordedCostMessages.add(msg);
+
+							// Record cost atomically
+							storage.costs
+								.recordCost(event.state.model.provider, event.state.model.id, msg.usage.cost.total)
+								.catch((err) => console.error("Failed to record cost:", err));
+						}
+					}
 				}
 
 				// Generate title after first successful response
@@ -492,7 +519,8 @@ const renderApp = () => {
 						variant: "ghost",
 						size: "sm",
 						children: icon(Settings, "sm"),
-						onClick: () => SettingsDialog.open([new SkillsTab(), new ApiKeysTab(), new ProxyTab()]),
+						onClick: () =>
+							SettingsDialog.open([new CostsTab(), new SkillsTab(), new ApiKeysTab(), new ProxyTab()]),
 						title: "Settings",
 					})}
 				</div>

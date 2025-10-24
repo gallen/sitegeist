@@ -67,6 +67,9 @@ declare module "@mariozechner/mini-lit" {
 		"Delete {count} sessions older than {days} days?": string;
 		"Failed to delete sessions. Check console for details.": string;
 		"Delete Old": string;
+		"All sessions": string;
+		"No sessions to delete": string;
+		"Delete ALL {count} sessions? This cannot be undone!": string;
 		"Older than 7 days": string;
 		"Older than 30 days": string;
 		"Older than 90 days": string;
@@ -139,6 +142,9 @@ const sitegeistTranslations = {
 		"Delete {count} sessions older than {days} days?": "Delete {count} sessions older than {days} days?",
 		"Failed to delete sessions. Check console for details.": "Failed to delete sessions. Check console for details.",
 		"Delete Old": "Delete",
+		"All sessions": "All sessions",
+		"No sessions to delete": "No sessions to delete",
+		"Delete ALL {count} sessions? This cannot be undone!": "Delete ALL {count} sessions? This cannot be undone!",
 		"Older than 7 days": "Older than 7 days",
 		"Older than 30 days": "Older than 30 days",
 		"Older than 90 days": "Older than 90 days",
@@ -210,6 +216,10 @@ const sitegeistTranslations = {
 		"Failed to delete sessions. Check console for details.":
 			"Löschen fehlgeschlagen. Prüfen Sie die Konsole für Details.",
 		"Delete Old": "Löschen",
+		"All sessions": "Alle Sitzungen",
+		"No sessions to delete": "Keine Sitzungen zum Löschen",
+		"Delete ALL {count} sessions? This cannot be undone!":
+			"ALLE {count} Sitzungen löschen? Dies kann nicht rückgängig gemacht werden!",
 		"Older than 7 days": "Älter als 7 Tage",
 		"Older than 30 days": "Älter als 30 Tage",
 		"Older than 90 days": "Älter als 90 Tage",

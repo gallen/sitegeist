@@ -213,6 +213,37 @@ export class SitegeistSessionListDialog extends DialogBase {
 		};
 	}
 
+	private async handleDeleteAll() {
+		if (this.sessions.length === 0) {
+			alert(i18n("No sessions to delete"));
+			return;
+		}
+
+		const confirmed = confirm(
+			i18n(`Delete ALL {count} sessions? This cannot be undone!`).replace(
+				"{count}",
+				this.sessions.length.toString(),
+			),
+		);
+
+		if (!confirmed) return;
+
+		try {
+			const storage = getAppStorage();
+			if (!storage.sessions) return;
+
+			for (const session of this.sessions) {
+				await storage.sessions.deleteSession(session.id);
+				this.deletedSessions.add(session.id);
+			}
+
+			await this.loadSessionsAndLocks();
+		} catch (err) {
+			console.error("Failed to delete all sessions:", err);
+			alert(i18n("Failed to delete sessions. Check console for details."));
+		}
+	}
+
 	private async handleDeleteOlderThan(days: number) {
 		const cutoffDate = new Date();
 		cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -383,7 +414,16 @@ export class SitegeistSessionListDialog extends DialogBase {
 									? html`
 										<div class="absolute right-0 top-full mt-1 w-48 rounded-md border border-border bg-background shadow-lg z-50">
 											<button
-												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors rounded-t-md"
+												class="w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-t-md font-medium"
+												@click=${() => {
+													this.showDeleteMenu = false;
+													this.handleDeleteAll();
+												}}
+											>
+												${i18n("All sessions")}
+											</button>
+											<button
+												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors border-t border-border"
 												@click=${() => {
 													this.showDeleteMenu = false;
 													this.handleDeleteOlderThan(7);
@@ -401,7 +441,7 @@ export class SitegeistSessionListDialog extends DialogBase {
 												${i18n("Older than 30 days")}
 											</button>
 											<button
-												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors border-t border-border rounded-b-md"
+												class="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-secondary transition-colors rounded-b-md"
 												@click=${() => {
 													this.showDeleteMenu = false;
 													this.handleDeleteOlderThan(90);
