@@ -52,7 +52,7 @@ export function createOverlayScript(taskName: string): string {
 		);
 	\`;
 
-	// Layer 1: Radial shimmer (orange) - very subtle
+	// Layer 1: Inner orange/red glow
 	const layer1 = document.createElement('div');
 	layer1.style.cssText = \`
 		position: absolute;
@@ -63,15 +63,15 @@ export function createOverlayScript(taskName: string): string {
 		background: radial-gradient(
 			ellipse at center,
 			transparent 0%,
-			transparent 60%,
-			rgba(217, 79, 0, 0.03) 75%,
-			rgba(255, 107, 0, 0.08) 90%,
-			rgba(217, 79, 0, 0.05) 100%
+			transparent 50%,
+			rgba(255, 107, 0, 0.04) 65%,
+			rgba(255, 69, 0, 0.06) 80%,
+			rgba(220, 38, 38, 0.03) 100%
 		);
 		animation: sitegeist-shimmer-radial-1 3s ease-in-out infinite;
 	\`;
 
-	// Layer 2: Radial shimmer (purple/pink) - very subtle
+	// Layer 2: Mid magenta/red layer
 	const layer2 = document.createElement('div');
 	layer2.style.cssText = \`
 		position: absolute;
@@ -83,14 +83,14 @@ export function createOverlayScript(taskName: string): string {
 			ellipse at center,
 			transparent 0%,
 			transparent 55%,
-			rgba(123, 31, 162, 0.02) 70%,
-			rgba(194, 24, 91, 0.06) 85%,
-			rgba(81, 45, 168, 0.04) 100%
+			rgba(194, 24, 91, 0.05) 70%,
+			rgba(219, 39, 119, 0.08) 85%,
+			rgba(157, 23, 77, 0.04) 100%
 		);
 		animation: sitegeist-shimmer-radial-2 4s ease-in-out infinite;
 	\`;
 
-	// Layer 3: Radial shimmer (blue/green) - very subtle
+	// Layer 3: Outer violet/purple layer - most prominent
 	const layer3 = document.createElement('div');
 	layer3.style.cssText = \`
 		position: absolute;
@@ -101,15 +101,15 @@ export function createOverlayScript(taskName: string): string {
 		background: radial-gradient(
 			ellipse at center,
 			transparent 0%,
-			transparent 58%,
-			rgba(21, 101, 192, 0.02) 73%,
-			rgba(45, 139, 61, 0.05) 88%,
-			rgba(21, 101, 192, 0.03) 100%
+			transparent 60%,
+			rgba(147, 51, 234, 0.06) 75%,
+			rgba(126, 34, 206, 0.12) 88%,
+			rgba(107, 33, 168, 0.08) 100%
 		);
 		animation: sitegeist-shimmer-radial-3 5s ease-in-out infinite;
 	\`;
 
-	// Layer 4: Pulsing border glow (gold/orange) - very subtle
+	// Layer 4: Deep purple edge glow
 	const borderGlow = document.createElement('div');
 	borderGlow.style.cssText = \`
 		position: absolute;
@@ -117,8 +117,8 @@ export function createOverlayScript(taskName: string): string {
 		left: 0;
 		width: 100%;
 		height: 100%;
-		box-shadow: inset 0 0 100px 15px rgba(212, 165, 0, 0.06),
-		            inset 0 0 50px 8px rgba(216, 67, 21, 0.04);
+		box-shadow: inset 0 0 120px 20px rgba(126, 34, 206, 0.08),
+		            inset 0 0 60px 10px rgba(147, 51, 234, 0.05);
 		animation: sitegeist-pulse 2s ease-in-out infinite;
 	\`;
 
@@ -158,17 +158,17 @@ export function createOverlayScript(taskName: string): string {
 		const delay = Math.random() * 5; // 0-5s delay
 		const opacity = Math.random() * 0.2 + 0.15; // 0.15-0.35 (much more subtle)
 
-		// Random color from OrbAnimation palette
+		// Random color - heavily favor violet/purple tones (matching reference)
 		const colors = [
-			'217, 79, 0',     // orange
-			'255, 107, 0',    // bright orange
-			'212, 165, 0',    // gold
-			'45, 139, 61',    // green
-			'21, 101, 192',   // blue
-			'123, 31, 162',   // purple
-			'194, 24, 91',    // pink
-			'216, 67, 21',    // red-orange
-			'81, 45, 168',    // deep purple
+			'147, 51, 234',   // purple (violet)
+			'126, 34, 206',   // deep purple
+			'107, 33, 168',   // darker purple
+			'147, 51, 234',   // purple (violet) - repeated for higher probability
+			'168, 85, 247',   // lighter purple
+			'194, 24, 91',    // magenta/pink
+			'219, 39, 119',   // bright pink
+			'255, 69, 0',     // red-orange
+			'220, 38, 38',    // red
 		];
 		const color = colors[Math.floor(Math.random() * colors.length)];
 
@@ -301,12 +301,12 @@ export function createOverlayScript(taskName: string): string {
 
 		@keyframes sitegeist-pulse {
 			0%, 100% {
-				box-shadow: inset 0 0 100px 15px rgba(212, 165, 0, 0.06),
-				            inset 0 0 50px 8px rgba(216, 67, 21, 0.04);
+				box-shadow: inset 0 0 120px 20px rgba(126, 34, 206, 0.08),
+				            inset 0 0 60px 10px rgba(147, 51, 234, 0.05);
 			}
 			50% {
-				box-shadow: inset 0 0 120px 20px rgba(212, 165, 0, 0.09),
-				            inset 0 0 60px 10px rgba(216, 67, 21, 0.06);
+				box-shadow: inset 0 0 140px 25px rgba(126, 34, 206, 0.11),
+				            inset 0 0 70px 12px rgba(147, 51, 234, 0.07);
 			}
 		}
 
