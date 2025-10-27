@@ -1,6 +1,5 @@
 import { html, i18n, icon } from "@mariozechner/mini-lit";
 import type { AgentTool, ToolResultMessage } from "@mariozechner/pi-ai";
-import { StringEnum } from "@mariozechner/pi-ai";
 import { registerToolRenderer, type ToolRenderer, type ToolRenderResult } from "@mariozechner/pi-web-ui";
 import { type Static, Type } from "@sinclair/typebox";
 import { Loader2 } from "lucide";
@@ -34,11 +33,6 @@ function markNavigationEnd() {
 const navigateSchema = Type.Object({
 	url: Type.Optional(Type.String({ description: "URL to navigate to (in current tab or new tab if newTab is true)" })),
 	newTab: Type.Optional(Type.Boolean({ description: "Set to true to open URL in a new tab instead of current tab" })),
-	history: Type.Optional(
-		StringEnum(["back", "forward"], {
-			description: "Navigate browser history (back or forward)",
-		}),
-	),
 	listTabs: Type.Optional(Type.Boolean({ description: "Set to true to list all open tabs" })),
 	switchToTab: Type.Optional(Type.Number({ description: "Tab ID to switch to (get IDs from listTabs)" })),
 });
@@ -126,9 +120,6 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 					// Navigate to URL in current tab
 					finalUrl = await this.navigateToUrl(tab.id, args.url, signal);
 				}
-			} else if ("history" in args && args.history !== undefined) {
-				// Navigate history
-				finalUrl = await this.navigateHistory(tab.id, args.history as "back" | "forward", signal);
 			} else {
 				throw new Error("Invalid navigation parameters");
 			}
@@ -219,87 +210,6 @@ export class NavigateTool implements AgentTool<typeof navigateSchema, NavigateRe
 				if (abortListener) signal?.removeEventListener("abort", abortListener);
 				reject(err);
 			});
-		});
-	}
-
-	private async navigateHistory(tabId: number, direction: "back" | "forward", signal?: AbortSignal): Promise<string> {
-		if (signal?.aborted) {
-			throw new Error("Aborted");
-		}
-
-		// First check if there's history available in that direction
-		const [result] = await chrome.scripting.executeScript({
-			target: { tabId: tabId },
-			func: (dir: "back" | "forward") => {
-				const canNavigate = dir === "back" ? history.length > 1 : false; // Can't reliably detect forward
-				return { canNavigate, currentUrl: location.href };
-			},
-			args: [direction],
-		});
-
-		const { canNavigate, currentUrl } = result.result as { canNavigate: boolean; currentUrl: string };
-
-		// For back navigation, we can check. For forward, we can't know for sure, so we try anyway
-		if (direction === "back" && !canNavigate) {
-			// No history to go back to, return current URL immediately
-			return currentUrl;
-		}
-
-		// Attempt navigation
-		return new Promise((resolve, reject) => {
-			if (signal?.aborted) {
-				reject(new Error("Aborted"));
-				return;
-			}
-
-			// Set up navigation completion listener
-			const listener = (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
-				if (details.tabId === tabId && details.frameId === 0) {
-					chrome.webNavigation.onCompleted.removeListener(listener);
-					if (abortListener) signal?.removeEventListener("abort", abortListener);
-					if (timeout) clearTimeout(timeout);
-					resolve(details.url);
-				}
-			};
-
-			// Set up abort listener
-			const abortListener = () => {
-				if (chrome.webNavigation?.onCompleted) {
-					chrome.webNavigation.onCompleted.removeListener(listener);
-				}
-				if (timeout) clearTimeout(timeout);
-				reject(new Error("Aborted"));
-			};
-
-			if (signal) {
-				signal.addEventListener("abort", abortListener);
-			}
-
-			chrome.webNavigation.onCompleted.addListener(listener);
-
-			// Set a timeout to detect if navigation didn't happen (no history available for forward)
-			const timeout = setTimeout(() => {
-				chrome.webNavigation.onCompleted.removeListener(listener);
-				if (abortListener) signal?.removeEventListener("abort", abortListener);
-				// Navigation didn't happen, return current URL
-				resolve(currentUrl);
-			}, 1000); // 1 second timeout
-
-			// Execute history navigation in the page
-			chrome.scripting
-				.executeScript({
-					target: { tabId: tabId },
-					func: (dir: "back" | "forward") => {
-						history[dir]();
-					},
-					args: [direction],
-				})
-				.catch((err: Error) => {
-					chrome.webNavigation.onCompleted.removeListener(listener);
-					if (abortListener) signal?.removeEventListener("abort", abortListener);
-					if (timeout) clearTimeout(timeout);
-					reject(err);
-				});
 		});
 	}
 
@@ -457,8 +367,6 @@ export const navigateRenderer: ToolRenderer<NavigateParams, NavigateResult> = {
 			let displayText = "";
 			if ("url" in params && params.url) {
 				displayText = params.url;
-			} else if ("history" in params && params.history) {
-				displayText = `history.${params.history}()`;
 			} else if ("listTabs" in params) {
 				displayText = "Listing tabs...";
 			} else if ("switchToTab" in params) {

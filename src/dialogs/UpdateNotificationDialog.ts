@@ -1,11 +1,11 @@
-import { Button, DialogBase, DialogContent, DialogHeader } from "@mariozechner/mini-lit";
+import { Button, DialogBase, DialogContent, DialogHeader, i18n } from "@mariozechner/mini-lit";
 import { html, type TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import "../utils/i18n-extension.js";
 
 @customElement("update-notification-dialog")
 export class UpdateNotificationDialog extends DialogBase {
 	@property() latestVersion = "";
-	private resolvePromise?: (value: boolean) => void;
 
 	protected modalWidth = "min(500px, 90vw)";
 	protected modalHeight = "auto";
@@ -19,8 +19,9 @@ export class UpdateNotificationDialog extends DialogBase {
 		dialog.latestVersion = latestVersion;
 		document.body.appendChild(dialog);
 
-		return new Promise((resolve) => {
-			dialog.resolvePromise = resolve as any;
+		// Dialog blocks until browser is restarted with new version
+		return new Promise(() => {
+			// Never resolves - blocks forever until restart
 		});
 	}
 
@@ -31,21 +32,26 @@ export class UpdateNotificationDialog extends DialogBase {
 
 	private handleUpdate() {
 		window.open("https://sitegeist.ai/install#updating", "_blank");
-		// Don't close the dialog - keep blocking until extension is actually updated and restarted
+		// Don't close - keep blocking until extension is actually updated and restarted
 	}
 
 	protected renderContent(): TemplateResult {
+		const description = i18n("A new version ({version}) is available. Please update to continue.").replace(
+			"{version}",
+			this.latestVersion,
+		);
+
 		return html`
 			${DialogContent({
 				children: html`
 					${DialogHeader({
-						title: "Update Required",
-						description: `A new version (${this.latestVersion}) is available. Please update to continue.`,
+						title: i18n("Update Required"),
+						description,
 					})}
 
 					<div class="mt-6 flex justify-end">
 						${Button({
-							children: "Update Now",
+							children: i18n("Update Now"),
 							onClick: () => this.handleUpdate(),
 							variant: "default",
 						})}

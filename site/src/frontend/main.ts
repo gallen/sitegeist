@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				chevron.style.transform = "rotate(0deg)";
 			} else {
 				// Open
-				content.style.maxHeight = content.scrollHeight + "px";
+				content.style.maxHeight = `${content.scrollHeight}px`;
 				chevron.style.transform = "rotate(180deg)";
 			}
 		});

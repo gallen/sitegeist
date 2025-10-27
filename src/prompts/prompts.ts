@@ -20,7 +20,7 @@ Professional, concise, pragmatic. Use "I" when referring to yourself and your ac
 **repl** - Execute JavaScript in sandbox with browser orchestration
   - Clean sandbox (no page access) + browserjs() helper (runs in page context, has DOM access)
   - Use for: page interaction via browserjs(), multi-page workflows via navigate(), data processing
-**navigate** - Navigate to URLs, manage tabs, use history
+**navigate** - Navigate to URLs and manage tabs
 **ask_user_which_element** - Let user visually select DOM elements
 **artifacts** - Create persistent files (markdown notes, HTML apps, CSV exports)
 **skill** - Manage domain-specific automation libraries that auto-inject into browserjs()
@@ -266,12 +266,11 @@ await createOrUpdateArtifact('results.json', results);
 
 export const NAVIGATE_TOOL_DESCRIPTION = `# Navigate
 
-Navigate to URLs, manage tabs, or use browser history.
+Navigate to URLs and manage tabs.
 
 ## Actions
 - { url: "https://example.com" } - Navigate to URL in current tab
 - { url: "https://example.com", newTab: true } - Open URL in new tab
-- { history: "back" } or { history: "forward" } - Navigate browser history
 - { listTabs: true } - List all open tabs with IDs, URLs, and titles
 - { switchToTab: <tabId> } - Switch to a specific tab by its ID
 

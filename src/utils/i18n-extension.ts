@@ -89,6 +89,9 @@ declare module "@mariozechner/mini-lit" {
 		"A new version ({version}) is available": string;
 		Update: string;
 		"You're up to date": string;
+		"Update Required": string;
+		"A new version ({version}) is available. Please update to continue.": string;
+		"Update Now": string;
 	}
 }
 
@@ -177,6 +180,10 @@ const sitegeistTranslations = {
 		"A new version ({version}) is available": "A new version ({version}) is available",
 		Update: "Update",
 		"You're up to date": "You're up to date",
+		"Update Required": "Update Required",
+		"A new version ({version}) is available. Please update to continue.":
+			"A new version ({version}) is available. Please update to continue.",
+		"Update Now": "Update Now",
 	},
 	de: {
 		"Permission request failed": "Berechtigungsanfrage fehlgeschlagen",
@@ -264,6 +271,10 @@ const sitegeistTranslations = {
 		"A new version ({version}) is available": "Eine neue Version ({version}) ist verfügbar",
 		Update: "Aktualisieren",
 		"You're up to date": "Sie sind auf dem neuesten Stand",
+		"Update Required": "Update erforderlich",
+		"A new version ({version}) is available. Please update to continue.":
+			"Eine neue Version ({version}) ist verfügbar. Bitte aktualisieren Sie, um fortzufahren.",
+		"Update Now": "Jetzt aktualisieren",
 	},
 };
 
