@@ -13,6 +13,7 @@ export class OrbAnimation extends LitElement {
 	private outerOrb?: typeof THREE.Mesh;
 	private animationFrame?: number;
 	private time = 0;
+	private currentIsDark = false;
 
 	protected createRenderRoot(): HTMLElement | ShadowRoot {
 		return this;
@@ -42,10 +43,8 @@ export class OrbAnimation extends LitElement {
 	private initThreeJS() {
 		if (!this.container) return;
 
-		// Get theme from localStorage
-		const theme = localStorage.getItem("theme") || "dark";
-		const isDark = theme === "dark";
-		const backgroundColor = getComputedStyle(this.container).getPropertyValue("background-color") || "transparent";
+		// Get theme from document class (checks for .dark class)
+		this.currentIsDark = document.documentElement.classList.contains("dark");
 
 		// Scene setup
 		this.scene = new THREE.Scene();
@@ -60,7 +59,6 @@ export class OrbAnimation extends LitElement {
 		this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setClearColor(0x000000, 0);
-		this.renderer.domElement.style.backgroundColor = backgroundColor;
 		this.container.appendChild(this.renderer.domElement);
 
 		this.camera.position.z = 4.5;
@@ -144,9 +142,9 @@ export class OrbAnimation extends LitElement {
 			uniforms: {
 				time: { value: 0 },
 				// Brighter colors for light theme, darker for dark theme
-				color1: { value: isDark ? new THREE.Color(0xd94f00) : new THREE.Color(0xff8c00) },
-				color2: { value: isDark ? new THREE.Color(0xff6b00) : new THREE.Color(0xffa500) },
-				color3: { value: isDark ? new THREE.Color(0xd4a500) : new THREE.Color(0xffb700) },
+				color1: { value: this.currentIsDark ? new THREE.Color(0xd94f00) : new THREE.Color(0xff8c00) },
+				color2: { value: this.currentIsDark ? new THREE.Color(0xff6b00) : new THREE.Color(0xffa500) },
+				color3: { value: this.currentIsDark ? new THREE.Color(0xd4a500) : new THREE.Color(0xffb700) },
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
@@ -164,9 +162,9 @@ export class OrbAnimation extends LitElement {
 			fragmentShader: fragmentShader,
 			uniforms: {
 				time: { value: 0 },
-				color1: { value: isDark ? new THREE.Color(0x2d8b3d) : new THREE.Color(0x4caf50) },
-				color2: { value: isDark ? new THREE.Color(0x1565c0) : new THREE.Color(0x2196f3) },
-				color3: { value: isDark ? new THREE.Color(0x7b1fa2) : new THREE.Color(0x9c27b0) },
+				color1: { value: this.currentIsDark ? new THREE.Color(0x2d8b3d) : new THREE.Color(0x4caf50) },
+				color2: { value: this.currentIsDark ? new THREE.Color(0x1565c0) : new THREE.Color(0x2196f3) },
+				color3: { value: this.currentIsDark ? new THREE.Color(0x7b1fa2) : new THREE.Color(0x9c27b0) },
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
@@ -185,9 +183,9 @@ export class OrbAnimation extends LitElement {
 			fragmentShader: fragmentShader,
 			uniforms: {
 				time: { value: 0 },
-				color1: { value: isDark ? new THREE.Color(0xc2185b) : new THREE.Color(0xe91e63) },
-				color2: { value: isDark ? new THREE.Color(0xd84315) : new THREE.Color(0xff5722) },
-				color3: { value: isDark ? new THREE.Color(0x512da8) : new THREE.Color(0x673ab7) },
+				color1: { value: this.currentIsDark ? new THREE.Color(0xc2185b) : new THREE.Color(0xe91e63) },
+				color2: { value: this.currentIsDark ? new THREE.Color(0xd84315) : new THREE.Color(0xff5722) },
+				color3: { value: this.currentIsDark ? new THREE.Color(0x512da8) : new THREE.Color(0x673ab7) },
 			},
 			transparent: true,
 			blending: THREE.AdditiveBlending,
@@ -199,9 +197,40 @@ export class OrbAnimation extends LitElement {
 		this.scene.add(this.outerOrb);
 	}
 
+	private updateTheme(isDark: boolean) {
+		if (!this.orb || !this.innerOrb || !this.outerOrb) {
+			return;
+		}
+
+		// Update main orb colors
+		const orbMaterial = this.orb.material as typeof THREE.ShaderMaterial;
+		orbMaterial.uniforms.color1.value = isDark ? new THREE.Color(0xd94f00) : new THREE.Color(0xff8c00);
+		orbMaterial.uniforms.color2.value = isDark ? new THREE.Color(0xff6b00) : new THREE.Color(0xffa500);
+		orbMaterial.uniforms.color3.value = isDark ? new THREE.Color(0xd4a500) : new THREE.Color(0xffb700);
+
+		// Update inner orb colors
+		const innerMaterial = this.innerOrb.material as typeof THREE.ShaderMaterial;
+		innerMaterial.uniforms.color1.value = isDark ? new THREE.Color(0x2d8b3d) : new THREE.Color(0x4caf50);
+		innerMaterial.uniforms.color2.value = isDark ? new THREE.Color(0x1565c0) : new THREE.Color(0x2196f3);
+		innerMaterial.uniforms.color3.value = isDark ? new THREE.Color(0x7b1fa2) : new THREE.Color(0x9c27b0);
+
+		// Update outer orb colors
+		const outerMaterial = this.outerOrb.material as typeof THREE.ShaderMaterial;
+		outerMaterial.uniforms.color1.value = isDark ? new THREE.Color(0xc2185b) : new THREE.Color(0xe91e63);
+		outerMaterial.uniforms.color2.value = isDark ? new THREE.Color(0xd84315) : new THREE.Color(0xff5722);
+		outerMaterial.uniforms.color3.value = isDark ? new THREE.Color(0x512da8) : new THREE.Color(0x673ab7);
+	}
+
 	private animateOrb = () => {
 		if (!this.scene || !this.camera || !this.renderer || !this.orb || !this.innerOrb || !this.outerOrb) {
 			return;
+		}
+
+		// Check if theme has changed
+		const isDark = document.documentElement.classList.contains("dark");
+		if (isDark !== this.currentIsDark) {
+			this.currentIsDark = isDark;
+			this.updateTheme(isDark);
 		}
 
 		this.time += 0.01;
