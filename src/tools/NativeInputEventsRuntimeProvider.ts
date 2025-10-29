@@ -360,6 +360,17 @@ export class NativeInputEventsRuntimeProvider implements SandboxRuntimeProvider 
 		} catch (error: any) {
 			console.error("[NativeInput] Error during operation:", error);
 			respond({ success: false, error: error.message || String(error) });
+		} finally {
+			// Detach debugger to remove the banner
+			try {
+				await chrome.debugger.detach({ tabId });
+				console.log("[NativeInput] Debugger detached successfully");
+			} catch (detachError: any) {
+				// Ignore errors if already detached or tab closed
+				if (!detachError.message?.includes("not attached")) {
+					console.warn("[NativeInput] Detach warning:", detachError.message);
+				}
+			}
 		}
 	}
 
