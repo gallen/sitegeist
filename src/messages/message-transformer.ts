@@ -1,5 +1,5 @@
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Message } from "@mariozechner/pi-ai";
-import type { AppMessage } from "@mariozechner/pi-web-ui";
 import type { NavigationMessage } from "./NavigationMessage.js";
 
 // Helper: Check if a message has toolCall blocks
@@ -74,7 +74,7 @@ function reorderMessages(messages: Message[]): Message[] {
 
 // Custom message transformer for browser extension
 // Handles navigation messages and app-specific message types
-export async function browserMessageTransformer(messages: AppMessage[]): Promise<Message[]> {
+export async function browserMessageTransformer(messages: AgentMessage[]): Promise<Message[]> {
 	const transformed = [];
 
 	for (const m of messages) {

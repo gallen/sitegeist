@@ -2,15 +2,12 @@
 @import "@mariozechner/mini-lit/styles/themes/default.css";
 
 /* Tell Tailwind to scan mini-lit components */
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind 4 source directive */
 @source "../node_modules/@mariozechner/mini-lit/dist";
 
 /* Tell Tailwind to scan web-ui components from file: dependency */
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind 4 source directive */
 @source "../node_modules/@mariozechner/pi-web-ui/src";
 
 /* Tell Tailwind to scan local components */
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind 4 source directive */
 @source "../src/**/*.ts";
 
 /* Import Tailwind */

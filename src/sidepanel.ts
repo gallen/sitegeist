@@ -2,31 +2,37 @@ import { icon } from "@mariozechner/mini-lit";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
 import { Input } from "@mariozechner/mini-lit/dist/Input.js";
 import "@mariozechner/mini-lit/dist/ThemeToggle.js";
-import { type AgentTool, getModel, type Model } from "@mariozechner/pi-ai";
 import {
 	Agent,
+	type AgentEvent,
+	type AgentMessage,
 	type AgentState,
-	ApiKeyPromptDialog,
-	type AppMessage,
+	type AgentTool,
+} from "@mariozechner/pi-agent-core";
+import { getModel, getModels, type Model } from "@mariozechner/pi-ai";
+import {
 	ChatPanel,
 	createExtractDocumentTool,
-	ProvidersModelsTab,
-	// PersistentStorageDialog,
-	ProviderTransport,
+	createStreamFn,
+	ModelSelector,
 	ProxyTab,
 	SettingsDialog,
+	// PersistentStorageDialog,
 	setAppStorage,
 	setShowJsonMode,
 } from "@mariozechner/pi-web-ui";
 import { html, render } from "lit";
 import { History, Plus, Settings } from "lucide";
 import { AboutTab } from "./dialogs/AboutTab.js";
+import { ApiKeyOrOAuthDialog } from "./dialogs/ApiKeyOrOAuthDialog.js";
+import { ApiKeysOAuthTab } from "./dialogs/ApiKeysOAuthTab.js";
 import { CostsTab } from "./dialogs/CostsTab.js";
 import { SessionCostDialog } from "./dialogs/SessionCostDialog.js";
 import { SitegeistSessionListDialog } from "./dialogs/SessionListDialog.js";
 import { SkillsTab } from "./dialogs/SkillsTab.js";
 import { UpdateNotificationDialog } from "./dialogs/UpdateNotificationDialog.js";
 import { UserScriptsPermissionDialog } from "./dialogs/UserScriptsPermissionDialog.js";
+import { WelcomeSetupDialog } from "./dialogs/WelcomeSetupDialog.js";
 import { browserMessageTransformer } from "./messages/message-transformer.js";
 import {
 	createNavigationMessage,
@@ -35,9 +41,11 @@ import {
 } from "./messages/NavigationMessage.js";
 import { registerUserMessageRenderer } from "./messages/UserMessageRenderer.js";
 import { createWelcomeMessage, registerWelcomeRenderer } from "./messages/WelcomeMessage.js";
+import { isOAuthCredentials, resolveApiKey } from "./oauth/index.js";
 import { SYSTEM_PROMPT } from "./prompts/prompts.js";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import { DebuggerTool } from "./tools/debugger.js";
+import { ExtractImageTool, registerExtractImageRenderer } from "./tools/extract-image.js";
 import { AskUserWhichElementTool, skillTool } from "./tools/index.js";
 import { NativeInputEventsRuntimeProvider } from "./tools/NativeInputEventsRuntimeProvider.js";
 import { isToolNavigating, NavigateTool } from "./tools/navigate.js";
@@ -46,11 +54,11 @@ import { BrowserJsRuntimeProvider, NavigateRuntimeProvider } from "./tools/repl/
 import * as port from "./utils/port.js";
 import "./utils/i18n-extension.js";
 import "./utils/live-reload.js";
-import type { AgentEvent } from "../../pi-mono/packages/web-ui/dist/agent/agent.js";
 import { tutorials } from "./tutorials.js";
 
 // Register custom message renderers
 registerNavigationRenderer();
+registerExtractImageRenderer();
 
 // Listen for abort messages from REPL overlay
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -92,7 +100,108 @@ const shownSkills = new Map<string, string>();
 
 // Track which messages we've already recorded costs for (avoid duplicates)
 // Use Set with message object identity (not cleared on session switch - persists in memory)
-const recordedCostMessages = new Set<AppMessage>();
+const recordedCostMessages = new Set<AgentMessage>();
+
+// Cached auth type label for the current provider
+let authLabel = "";
+
+const DEFAULT_MODELS: Record<string, string> = {
+	"amazon-bedrock": "us.anthropic.claude-opus-4-6-v1",
+	anthropic: "claude-sonnet-4-6",
+	"azure-openai-responses": "gpt-5.2",
+	cerebras: "zai-glm-4.6",
+	"github-copilot": "gpt-4o",
+	google: "gemini-2.5-flash",
+	"google-antigravity": "gemini-3.1-pro-high",
+	"google-gemini-cli": "gemini-2.5-pro",
+	"google-vertex": "gemini-3-pro-preview",
+	groq: "openai/gpt-oss-20b",
+	huggingface: "moonshotai/Kimi-K2.5",
+	"kimi-coding": "kimi-k2-thinking",
+	minimax: "MiniMax-M2.1",
+	"minimax-cn": "MiniMax-M2.1",
+	mistral: "devstral-medium-latest",
+	openai: "gpt-4o-mini",
+	"openai-codex": "gpt-5.1-codex-mini",
+	opencode: "claude-opus-4-6",
+	"opencode-go": "kimi-k2.5",
+	openrouter: "openai/gpt-5.1-codex",
+	"vercel-ai-gateway": "anthropic/claude-opus-4-6",
+	xai: "grok-4-fast-non-reasoning",
+	zai: "glm-4.6",
+};
+
+async function selectDefaultModelForAvailableProvider() {
+	const providers = await getProvidersWithKeys();
+	if (providers.length === 0 || !agent) return;
+
+	// Try each provider with keys and find a default model
+	for (const provider of providers) {
+		const modelId = DEFAULT_MODELS[provider];
+		if (modelId) {
+			const model = getModel(provider as any, modelId);
+			if (model) {
+				agent.setModel(model);
+				await storage.settings.set("lastUsedModel", model);
+				await updateAuthLabel();
+				renderApp();
+				return;
+			}
+		}
+	}
+
+	// If no default found, try the first model for the first provider with a key
+	for (const provider of providers) {
+		const models = getModels(provider as any);
+		if (models.length > 0) {
+			agent.setModel(models[0]);
+			await storage.settings.set("lastUsedModel", models[0]);
+			await updateAuthLabel();
+			renderApp();
+			return;
+		}
+	}
+}
+
+async function getProvidersWithKeys(): Promise<string[]> {
+	const providers = await storage.providerKeys.list();
+	const result: string[] = [];
+	for (const provider of providers) {
+		const key = await storage.providerKeys.get(provider);
+		if (key) result.push(provider);
+	}
+	return result;
+}
+
+async function hasAnyApiKey(): Promise<boolean> {
+	const providers = await storage.providerKeys.list();
+	return providers.length > 0;
+}
+
+function openApiKeysDialog(): Promise<void> {
+	return new Promise((resolve) => {
+		SettingsDialog.open(
+			[new ApiKeysOAuthTab(), new CostsTab(), new SkillsTab(), new ProxyTab(), new AboutTab()],
+			resolve,
+		);
+	});
+}
+
+async function updateAuthLabel() {
+	if (!agent) {
+		authLabel = "";
+		return;
+	}
+	const provider = agent.state.model.provider;
+	const stored = await storage.providerKeys.get(provider);
+	if (!stored) {
+		authLabel = "";
+	} else if (isOAuthCredentials(stored)) {
+		authLabel = "subscription";
+	} else {
+		authLabel = "api key";
+	}
+}
 
 // Export getter for message transformer
 export function getShownSkills(): Map<string, string> {
@@ -102,7 +211,7 @@ export function getShownSkills(): Map<string, string> {
 // ============================================================================
 // HELPERS
 // ============================================================================
-const generateTitle = (messages: AppMessage[]): string => {
+const generateTitle = (messages: AgentMessage[]): string => {
 	const firstUserMsg = messages.find((m) => m.role === "user");
 	if (!firstUserMsg || firstUserMsg.role !== "user") return "";
 
@@ -126,9 +235,9 @@ const generateTitle = (messages: AppMessage[]): string => {
 	return text.length <= 50 ? text : `${text.substring(0, 47)}...`;
 };
 
-const shouldSaveSession = (messages: AppMessage[]): boolean => {
-	const hasUserMsg = messages.some((m: AppMessage) => m.role === "user");
-	const hasAssistantMsg = messages.some((m: AppMessage) => m.role === "assistant");
+const shouldSaveSession = (messages: AgentMessage[]): boolean => {
+	const hasUserMsg = messages.some((m: AgentMessage) => m.role === "user");
+	const hasAssistantMsg = messages.some((m: AgentMessage) => m.role === "assistant");
 	return hasUserMsg && hasAssistantMsg;
 };
 
@@ -145,6 +254,7 @@ const saveSession = async () => {
 			output: 0,
 			cacheRead: 0,
 			cacheWrite: 0,
+			totalTokens: 0,
 			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
 		};
 
@@ -154,6 +264,7 @@ const saveSession = async () => {
 				usage.output += msg.usage.output;
 				usage.cacheRead += msg.usage.cacheRead;
 				usage.cacheWrite += msg.usage.cacheWrite;
+				usage.totalTokens += msg.usage.input + msg.usage.output + msg.usage.cacheRead + msg.usage.cacheWrite;
 				if (msg.usage.cost) {
 					usage.cost.input += msg.usage.cost.input;
 					usage.cost.output += msg.usage.cost.output;
@@ -241,92 +352,108 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 	const corsProxyEnabled = await storage.settings.get<boolean>("proxy.enabled");
 	const corsProxyUrl = await storage.settings.get<string>("proxy.url");
 
-	const transport = new ProviderTransport();
-
-	// Determine default model (last used model or fallback to Sonnet)
-	let defaultModel = getModel("anthropic", "claude-haiku-4-5-20251001");
+	// Determine default model: saved > default for a provider with key > gemini flash fallback
+	let defaultModel: Model<any> | undefined;
 	if (!initialState?.model) {
 		const savedModel = await storage.settings.get<Model<any>>("lastUsedModel");
-
 		if (savedModel) {
-			try {
-				defaultModel = savedModel;
-			} catch (error) {
-				console.warn("Failed to restore saved model, using default:", error);
+			defaultModel = savedModel;
+		} else {
+			// Try to find a default model for a provider the user already has a key for
+			const providersWithKeys = await getProvidersWithKeys();
+			for (const provider of providersWithKeys) {
+				const modelId = DEFAULT_MODELS[provider];
+				if (modelId) {
+					const model = getModel(provider as any, modelId);
+					if (model) {
+						defaultModel = model;
+						break;
+					}
+				}
 			}
 		}
+	}
+	// Final fallback
+	if (!defaultModel && !initialState?.model) {
+		defaultModel = getModel("anthropic", "claude-sonnet-4-6");
 	}
 
 	agent = new Agent({
 		initialState: initialState || {
 			systemPrompt: SYSTEM_PROMPT,
 			model: defaultModel,
-			thinkingLevel: "off",
+			thinkingLevel: "medium",
 			messages: [],
 			tools: [],
 		},
-		transport,
-		messageTransformer: browserMessageTransformer,
+		convertToLlm: browserMessageTransformer,
+		toolExecution: "sequential",
+		streamFn: createStreamFn(async () => {
+			const enabled = await storage.settings.get<boolean>("proxy.enabled");
+			if (!enabled) return undefined;
+			return (await storage.settings.get<string>("proxy.url")) || undefined;
+		}),
+		getApiKey: async (provider: string) => {
+			const stored = await storage.providerKeys.get(provider);
+			if (!stored) return undefined;
+			const proxyEnabled = await storage.settings.get<boolean>("proxy.enabled");
+			const proxyUrl = proxyEnabled ? (await storage.settings.get<string>("proxy.url")) || undefined : undefined;
+			return resolveApiKey(stored, provider, storage.providerKeys, proxyUrl);
+		},
 	});
+
+	await updateAuthLabel();
 
 	if (shouldSave) {
 		agentUnsubscribe = agent.subscribe((event: AgentEvent) => {
-			if (event.type === "state-update") {
-				const messages = event.state.messages;
+			const messages = agent.state.messages;
 
-				// Save last used model when it changes
-				if (event.state.model) {
-					storage.settings
-						.set("lastUsedModel", event.state.model)
-						.catch((err) => console.error("Failed to save lastUsedModel:", err));
+			storage.settings
+				.set("lastUsedModel", agent.state.model)
+				.catch((err) => console.error("Failed to save lastUsedModel:", err));
+
+			// Update auth label when model changes
+			updateAuthLabel().catch(() => {});
+
+			if (
+				event.type === "message_end" &&
+				event.message.role === "assistant" &&
+				event.message.usage?.cost?.total > 0
+			) {
+				if (!recordedCostMessages.has(event.message)) {
+					recordedCostMessages.add(event.message);
+					storage.costs
+						.recordCost(agent.state.model.provider, agent.state.model.id, event.message.usage.cost.total)
+						.catch((err) => console.error("Failed to record cost:", err));
 				}
-
-				// Record costs from new assistant messages
-				for (const msg of messages) {
-					if (msg.role === "assistant" && msg.usage?.cost?.total > 0) {
-						// Use message object identity - same instance = already recorded
-						if (!recordedCostMessages.has(msg)) {
-							recordedCostMessages.add(msg);
-
-							// Record cost atomically
-							storage.costs
-								.recordCost(event.state.model.provider, event.state.model.id, msg.usage.cost.total)
-								.catch((err) => console.error("Failed to record cost:", err));
-						}
-					}
-				}
-
-				// Generate title after first successful response
-				if (!currentTitle && shouldSaveSession(messages)) {
-					currentTitle = generateTitle(messages);
-				}
-
-				// Create session ID on first successful save
-				if (!currentSessionId && shouldSaveSession(messages)) {
-					currentSessionId = crypto.randomUUID();
-
-					// Acquire lock for newly created session
-					port
-						.sendMessage({
-							type: "acquireLock",
-							sessionId: currentSessionId,
-							windowId: currentWindowId,
-						})
-						.then((lockResponse) => {
-							if (!lockResponse.success) {
-								console.warn("Failed to acquire lock for newly created session", currentSessionId);
-							}
-						});
-					updateUrl(currentSessionId);
-				}
-
-				// Auto-save
-				if (currentSessionId) {
-					saveSession();
-				}
-
-				renderApp();
 			}
+
+			if (!currentTitle && shouldSaveSession(messages)) {
+				currentTitle = generateTitle(messages);
+			}
+
+			if (!currentSessionId && shouldSaveSession(messages)) {
+				currentSessionId = crypto.randomUUID();
+
+				port
+					.sendMessage({
+						type: "acquireLock",
+						sessionId: currentSessionId,
+						windowId: currentWindowId,
+					})
+					.then((lockResponse) => {
+						if (!lockResponse.success) {
+							console.warn("Failed to acquire lock for newly created session", currentSessionId);
+						}
+					});
+				updateUrl(currentSessionId);
+			}
+
+			if (currentSessionId) {
+				saveSession();
+			}
+
+			renderApp();
 		});
 	}
 
@@ -335,7 +462,15 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 			return chrome.runtime.getURL("sandbox.html");
 		},
 		onApiKeyRequired: async (provider: string) => {
-			return await ApiKeyPromptDialog.prompt(provider);
+			return await ApiKeyOrOAuthDialog.prompt(provider);
+		},
+		onModelSelect: async () => {
+			const providers = await getProvidersWithKeys();
+			if (providers.length === 0) {
+				openApiKeysDialog();
+				return;
+			}
+			ModelSelector.open(agent.state.model, (model) => agent.setModel(model), providers);
 		},
 		onBeforeSend: async () => {
 			if (!agent) return;
@@ -399,12 +534,16 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 				];
 			};
 
+			const extractImageTool = new ExtractImageTool();
+			extractImageTool.windowId = currentWindowId;
+
 			const tools: AgentTool<any, any>[] = [
 				navigateTool,
 				selectElementTool,
 				replTool,
 				skillTool,
 				extractDocumentTool,
+				extractImageTool,
 			];
 
 			// Conditionally add debugger tool if enabled
@@ -429,13 +568,11 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 
 			// Re-enable auto-scroll on first user message
 			let unsubscribe: (() => void) | undefined;
-			unsubscribe = agent.subscribe((event) => {
-				if (event.type === "state-update") {
-					const hasUserMsg = event.state.messages.some((m) => m.role === "user");
-					if (hasUserMsg && unsubscribe) {
-						chatPanel.agentInterface?.setAutoScroll(true);
-						unsubscribe();
-					}
+			unsubscribe = agent.subscribe(() => {
+				const hasUserMsg = agent.state.messages.some((m) => m.role === "user");
+				if (hasUserMsg && unsubscribe) {
+					chatPanel.agentInterface?.setAutoScroll(true);
+					unsubscribe();
 				}
 			});
 		}
@@ -548,6 +685,7 @@ const renderApp = () => {
 					}
 				</div>
 				<div class="flex items-center gap-1 px-2">
+					${agent ? html`<span class="text-[10px] text-muted-foreground truncate max-w-[120px]" title="${agent.state.model.provider}/${agent.state.model.id}${authLabel ? ` (${authLabel})` : ""}">${agent.state.model.provider}${authLabel ? html` <span class="text-[9px] opacity-70">${authLabel}</span>` : ""}</span>` : ""}
 					<theme-toggle></theme-toggle>
 					${Button({
 						variant: "ghost",
@@ -555,9 +693,9 @@ const renderApp = () => {
 						children: icon(Settings, "sm"),
 						onClick: () =>
 							SettingsDialog.open([
+								new ApiKeysOAuthTab(),
 								new CostsTab(),
 								new SkillsTab(),
-								new ProvidersModelsTab(),
 								new ProxyTab(),
 								new AboutTab(),
 							]),
@@ -595,7 +733,7 @@ chrome.tabs.onUpdated.addListener(async (_tabId, changeInfo, tab) => {
 		!isToolNavigating()
 	) {
 		const navMessage = await createNavigationMessage(tab.url, tab.title || "Untitled", tab.favIconUrl, tab.id);
-		agent.queueMessage(navMessage);
+		agent.steer(navMessage);
 		console.log("Queued navigation message for tab switch to", tab.url);
 	}
 });
@@ -616,7 +754,7 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 		!isToolNavigating()
 	) {
 		const navMessage = await createNavigationMessage(tab.url, tab.title || "Untitled", tab.favIconUrl, tab.id);
-		agent.queueMessage(navMessage);
+		agent.steer(navMessage);
 		console.log("Queued navigation message for tab switch to", tab.url);
 	}
 });
@@ -769,7 +907,7 @@ async function initApp() {
 
 	// Load showJsonMode setting
 	const stored = await chrome.storage.local.get("showJsonMode");
-	const showJsonModeEnabled = stored.showJsonMode || false;
+	const showJsonModeEnabled = (stored.showJsonMode as boolean) || false;
 	setShowJsonMode(showJsonModeEnabled);
 
 	// Get current window ID for filtering tab events
@@ -896,6 +1034,14 @@ async function initApp() {
 	}
 
 	renderApp();
+
+	// If no API keys configured, show welcome dialog, open settings, then auto-select model
+	if (!(await hasAnyApiKey())) {
+		await WelcomeSetupDialog.show();
+		await openApiKeysDialog();
+		await selectDefaultModelForAvailableProvider();
+		renderApp();
+	}
 }
 
 // Register custom user message renderer early, before any session loads

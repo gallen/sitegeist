@@ -1,4 +1,5 @@
-import type { Agent, AgentInterface, MessageRenderer } from "@mariozechner/pi-web-ui";
+import type { Agent } from "@mariozechner/pi-agent-core";
+import type { AgentInterface, MessageRenderer } from "@mariozechner/pi-web-ui";
 import { registerMessageRenderer } from "@mariozechner/pi-web-ui";
 import { html, LitElement, type TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
@@ -14,8 +15,8 @@ export interface WelcomeMessage {
 	tutorials: TutorialPrompt[];
 }
 
-declare module "@mariozechner/pi-web-ui" {
-	interface CustomMessages {
+declare module "@mariozechner/pi-agent-core" {
+	interface CustomAgentMessages {
 		welcome: WelcomeMessage;
 	}
 }

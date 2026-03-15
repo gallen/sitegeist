@@ -20,9 +20,9 @@ export interface NavigationMessage {
 	skillsOutput: string; // Frozen formatted skills text (shown to LLM)
 }
 
-// Extend CustomMessages interface via declaration merging
-declare module "@mariozechner/pi-web-ui" {
-	interface CustomMessages {
+// Extend CustomAgentMessages interface via declaration merging
+declare module "@mariozechner/pi-agent-core" {
+	interface CustomAgentMessages {
 		navigation: NavigationMessage;
 	}
 }

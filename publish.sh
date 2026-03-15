@@ -3,12 +3,7 @@
 # Exit on error
 set -e
 
-echo "🔨 Building pi-mono..."
-cd ../pi-mono
-npm run build
-
 echo "🔨 Building sitegeist..."
-cd ../sitegeist
 npm run build
 
 echo "📦 Creating zip archive..."

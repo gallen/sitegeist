@@ -2,7 +2,8 @@ import "@mariozechner/mini-lit/dist/MarkdownBlock.js";
 import { icon } from "@mariozechner/mini-lit";
 import { Diff } from "@mariozechner/mini-lit/dist/Diff.js";
 import i18n from "@mariozechner/mini-lit/dist/i18n.js";
-import { type AgentTool, StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentTool } from "@mariozechner/pi-agent-core";
+import { StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
 import {
 	registerToolRenderer,
 	renderCollapsibleHeader,

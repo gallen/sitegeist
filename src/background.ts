@@ -36,7 +36,7 @@ let openSidepanels = new Set<number>();
 
 // Initialize cache from storage on startup
 chrome.storage.session.get(SIDEPANEL_OPEN_KEY, (data) => {
-	openSidepanels = new Set<number>(data[SIDEPANEL_OPEN_KEY] || []);
+	openSidepanels = new Set<number>((data[SIDEPANEL_OPEN_KEY] as number[]) || []);
 	console.log("[Background] Initialized openSidepanels cache:", Array.from(openSidepanels));
 });
 
@@ -53,7 +53,7 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
 
 	// Mark sidepanel as open in persistent storage (survives service worker sleep)
 	chrome.storage.session.get(SIDEPANEL_OPEN_KEY, (data) => {
-		const openWindows = new Set<number>(data[SIDEPANEL_OPEN_KEY] || []);
+		const openWindows = new Set<number>((data[SIDEPANEL_OPEN_KEY] as number[]) || []);
 		openWindows.add(windowId);
 		chrome.storage.session.set({ [SIDEPANEL_OPEN_KEY]: Array.from(openWindows) });
 	});
@@ -64,7 +64,7 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
 
 			// Read current locks from persistent storage
 			chrome.storage.session.get(SESSION_LOCKS_KEY, (data) => {
-				const sessionLocks: Record<string, number> = data[SESSION_LOCKS_KEY] || {};
+				const sessionLocks: Record<string, number> = (data[SESSION_LOCKS_KEY] as Record<string, number>) || {};
 				const ownerWindowId = sessionLocks[sessionId];
 				const ownerSidepanelOpen = ownerWindowId !== undefined && openSidepanels.has(ownerWindowId);
 
@@ -95,7 +95,7 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
 		} else if (msg.type === "getLockedSessions") {
 			// Read current locks from persistent storage
 			chrome.storage.session.get(SESSION_LOCKS_KEY, (data) => {
-				const locks: Record<string, number> = data[SESSION_LOCKS_KEY] || {};
+				const locks: Record<string, number> = (data[SESSION_LOCKS_KEY] as Record<string, number>) || {};
 				const response: LockedSessionsMessage = {
 					type: "lockedSessions",
 					locks,
@@ -138,8 +138,7 @@ chrome.commands.onCommand.addListener((command: string, sender?: chrome.tabs.Tab
 
 function closeSidepanel(windowId: number, callCloseOnSidePanelAPI: boolean = true) {
 	if (callCloseOnSidePanelAPI) {
-		// @ts-expect-error 'close' may be missing in some type definitions
-		chrome.sidePanel.close({ windowId });
+		(chrome.sidePanel as any).close({ windowId });
 	}
 
 	// Update cache synchronously
@@ -148,7 +147,7 @@ function closeSidepanel(windowId: number, callCloseOnSidePanelAPI: boolean = tru
 	// Clean up storage state (same logic as onDisconnect)
 	chrome.storage.session.get([SESSION_LOCKS_KEY, SIDEPANEL_OPEN_KEY], (data) => {
 		// Release session locks for this window
-		const sessionLocks: Record<string, number> = data[SESSION_LOCKS_KEY] || {};
+		const sessionLocks: Record<string, number> = (data[SESSION_LOCKS_KEY] as Record<string, number>) || {};
 		for (const sessionId in sessionLocks) {
 			if (sessionLocks[sessionId] === windowId) {
 				delete sessionLocks[sessionId];
@@ -156,7 +155,7 @@ function closeSidepanel(windowId: number, callCloseOnSidePanelAPI: boolean = tru
 		}
 
 		// Mark sidepanel as closed
-		const openWindows = new Set<number>(data[SIDEPANEL_OPEN_KEY] || []);
+		const openWindows = new Set<number>((data[SIDEPANEL_OPEN_KEY] as number[]) || []);
 		openWindows.delete(windowId);
 
 		// Save both updates atomically

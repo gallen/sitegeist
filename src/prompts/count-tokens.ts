@@ -30,14 +30,14 @@ const runtimeProviders = [
 	{ name: "NAVIGATE", description: NAVIGATE_RUNTIME_PROVIDER_DESCRIPTION },
 ];
 
-// @ts-expect-error: ensure env var exists
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
 
-if (!ANTHROPIC_API_KEY) {
+if (!anthropicApiKey) {
 	console.error("Error: ANTHROPIC_API_KEY environment variable not set");
-	// @ts-expect-error: exit process
 	process.exit(1);
 }
+
+const ANTHROPIC_API_KEY = anthropicApiKey;
 
 // Tool definitions matching sidepanel.ts
 export const TOOL_DEFINITIONS = [

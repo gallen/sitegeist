@@ -1,5 +1,6 @@
 import { i18n, icon } from "@mariozechner/mini-lit";
-import type { AgentTool, ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentTool } from "@mariozechner/pi-agent-core";
+import type { ToolResultMessage } from "@mariozechner/pi-ai";
 import { registerToolRenderer, type ToolRenderer, type ToolRenderResult } from "@mariozechner/pi-web-ui";
 import { type Static, Type } from "@sinclair/typebox";
 import { html } from "lit";

@@ -1,8 +1,8 @@
 import "@mariozechner/mini-lit/dist/MarkdownBlock.js";
 import { DialogBase } from "@mariozechner/mini-lit/dist/DialogBase.js";
 import { icon } from "@mariozechner/mini-lit/dist/icons.js";
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { AppMessage } from "@mariozechner/pi-web-ui";
 import { Chart, type ChartConfiguration, registerables } from "chart.js";
 import type { PropertyValues } from "lit";
 import { html } from "lit";
@@ -31,7 +31,7 @@ interface CostEntry {
 }
 
 export class SessionCostDialog extends DialogBase {
-	private messages: AppMessage[] = [];
+	private messages: AgentMessage[] = [];
 	private costEntries: CostEntry[] = [];
 	private chart?: Chart;
 	private static currentDialog?: SessionCostDialog;
@@ -43,7 +43,7 @@ export class SessionCostDialog extends DialogBase {
 	 * Open dialog to view session cost details.
 	 * Creates dialog instance and appends to body.
 	 */
-	static open(messages: AppMessage[]) {
+	static open(messages: AgentMessage[]) {
 		// If a dialog is already open, just return
 		if (SessionCostDialog.currentDialog) {
 			return;

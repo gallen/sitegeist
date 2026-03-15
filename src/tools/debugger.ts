@@ -1,4 +1,5 @@
-import { type AgentTool, StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentTool } from "@mariozechner/pi-agent-core";
+import { StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
 import {
 	registerToolRenderer,
 	renderCollapsibleHeader,

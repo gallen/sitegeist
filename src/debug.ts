@@ -67,8 +67,8 @@ const TEST_PROMPTS: TestPrompt[] = [
 const renderDebugPage = async () => {
 	// Get current debugger mode state
 	const stored = await chrome.storage.local.get(["debuggerMode", "showJsonMode"]);
-	let debuggerMode = stored.debuggerMode || false;
-	let showJsonMode = stored.showJsonMode || false;
+	let debuggerMode = (stored.debuggerMode as boolean) || false;
+	let showJsonMode = (stored.showJsonMode as boolean) || false;
 
 	const updateDebuggerMode = async (enabled: boolean) => {
 		debuggerMode = enabled;

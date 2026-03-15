@@ -1,4 +1,5 @@
-import { type AppMessage, type SessionData, SessionsStore } from "@mariozechner/pi-web-ui";
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import { type SessionData, SessionsStore } from "@mariozechner/pi-web-ui";
 
 /**
  * Extended SessionsStore that migrates old tool result messages from output to content format.
@@ -27,7 +28,7 @@ export class SitegeistSessionsStore extends SessionsStore {
 		};
 	}
 
-	private migrateToolResultMessages(messages: AppMessage[]): AppMessage[] {
+	private migrateToolResultMessages(messages: AgentMessage[]): AgentMessage[] {
 		return messages.map((msg) => {
 			if (msg.role === "toolResult" && "output" in msg && !msg.content) {
 				// Old format detected - migrate it
