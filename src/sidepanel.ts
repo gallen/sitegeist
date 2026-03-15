@@ -930,8 +930,8 @@ async function initApp() {
 		await UserScriptsPermissionDialog.request();
 	}
 
-	// Check for updates on startup
-	await checkForUpdates();
+	// TODO: re-enable update check when publishing to users
+	// await checkForUpdates();
 
 	// Initialize default skills
 	const { initializeDefaultSkills } = await import("./tools/skill.js");

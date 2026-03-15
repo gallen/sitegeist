@@ -4,11 +4,11 @@ AI-powered browser extension for web navigation and interaction.
 
 ## Development
 
-Prerequisites: clone this repo plus its sibling dependencies:
+Prerequisites: clone this repo plus its sibling dependencies into the same parent directory:
 
 ```
 parent/
-  mini-lit/          # https://github.com/user/mini-lit
+  mini-lit/          # https://github.com/badlogic/mini-lit
   pi-mono/           # https://github.com/badlogic/pi-mono
   sitegeist/         # this repo
 ```
@@ -37,6 +37,22 @@ To run only the extension watcher without dependencies or the marketing site:
 npm run dev
 ```
 
+### Loading the extension
+
+1. Open `chrome://extensions/` or `edge://extensions/`
+2. Enable Developer mode
+3. Click Load unpacked
+4. Select `sitegeist/dist-chrome/`
+5. Enable the "Allow User Scripts" toggle in the extension details
+
+The extension hot-reloads when the dev watcher rebuilds.
+
+### First run
+
+On first launch, Sitegeist prompts you to connect at least one AI provider. You can log in with a subscription (Anthropic, OpenAI Codex, GitHub Copilot, Google Gemini) or enter an API key.
+
+Some subscription logins require the CORS proxy (configurable in Settings > Proxy). The default proxy is `https://proxy.mariozechner.at/proxy`.
+
 ## Checks
 
 ```bash
@@ -54,13 +70,6 @@ npm run build
 ```
 
 The unpacked extension is written to `dist-chrome/`.
-
-## Loading the extension
-
-1. Open `chrome://extensions/` or `edge://extensions/`
-2. Enable Developer mode
-3. Click Load unpacked
-4. Select `sitegeist/dist-chrome/`
 
 ## Publishing
 
