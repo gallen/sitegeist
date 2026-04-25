@@ -13,10 +13,10 @@ import {
 	type ToolRenderer,
 	type ToolRenderResult,
 } from "@mariozechner/pi-web-ui";
-import { type Static, Type } from "@sinclair/typebox";
 import { html } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Code } from "lucide";
+import { type Static, Type } from "typebox";
 import { REPL_TOOL_DESCRIPTION } from "../../prompts/prompts.js";
 import "../../utils/i18n-extension.js";
 import { injectOverlayForActiveTab, removeOverlayForActiveTab } from "./overlay-inject.js";

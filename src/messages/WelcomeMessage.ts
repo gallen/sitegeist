@@ -55,7 +55,7 @@ export class WelcomeMessageElement extends LitElement {
 	private async selectTutorial(prompt: string) {
 		// Remove this welcome message
 		const messages = this.agent.state.messages.filter((m) => m !== this.message);
-		this.agent.replaceMessages(messages);
+		this.agent.state.messages = messages;
 
 		// Send tutorial prompt
 		await this.agentInterface.sendMessage(prompt);

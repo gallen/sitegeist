@@ -12,10 +12,10 @@ import {
 	type ToolRenderer,
 	type ToolRenderResult,
 } from "@mariozechner/pi-web-ui";
-import { type Static, Type } from "@sinclair/typebox";
 import { html, type TemplateResult } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Sparkles } from "lucide";
+import { type Static, Type } from "typebox";
 import { DomainPill } from "../components/DomainPill.js";
 import { SkillPill } from "../components/SkillPill.js";
 import { SKILL_TOOL_DESCRIPTION } from "../prompts/prompts.js";

@@ -20,7 +20,6 @@
 		"@mariozechner/pi-agent-core": "file:../pi-mono/packages/agent",
 		"@mariozechner/pi-ai": "file:../pi-mono/packages/ai",
 		"@mariozechner/pi-web-ui": "file:../pi-mono/packages/web-ui",
-		"@sinclair/typebox": "^0.34.41",
 		"chart.js": "^4.5.1",
 		"docx-preview": "^0.3.7",
 		"fuse.js": "^7.1.0",
@@ -34,6 +33,7 @@
 		"pdfjs-dist": "5.4.394",
 		"three": "^0.180.0",
 		"tsx": "^4.20.6",
+		"typebox": "^1.1.33",
 		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
 	},
 	"devDependencies": {
@@ -44,6 +44,7 @@
 		"concurrently": "^9.2.1",
 		"esbuild": "^0.25.10",
 		"husky": "^9.1.7",
+		"typescript": "^5.9.3",
 		"ws": "^8.18.0"
 	}
 }
