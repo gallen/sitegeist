@@ -1,5 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { Message } from "@mariozechner/pi-ai";
+import type { ImageContent, Message, TextContent } from "@mariozechner/pi-ai";
+import { convertAttachments, isUserMessageWithAttachments } from "@mariozechner/pi-web-ui";
 import type { NavigationMessage } from "./NavigationMessage.js";
 
 // Helper: Check if a message has toolCall blocks
@@ -75,11 +76,27 @@ function reorderMessages(messages: Message[]): Message[] {
 // Custom message transformer for browser extension
 // Handles navigation messages and app-specific message types
 export async function browserMessageTransformer(messages: AgentMessage[]): Promise<Message[]> {
-	const transformed = [];
+	const transformed: Message[] = [];
 
 	for (const m of messages) {
 		// Filter out UI-only messages
 		if (m.role === "artifact" || m.role === "welcome") {
+			continue;
+		}
+
+		if (isUserMessageWithAttachments(m)) {
+			const content: (TextContent | ImageContent)[] =
+				typeof m.content === "string" ? [{ type: "text", text: m.content }] : [...m.content];
+
+			if (m.attachments) {
+				content.push(...convertAttachments(m.attachments));
+			}
+
+			transformed.push({
+				role: "user",
+				content,
+				timestamp: m.timestamp,
+			});
 			continue;
 		}
 
@@ -111,9 +128,6 @@ ${skillsInfo}
 - DO NOT REPEAT THIS MESSAGE BACK TO THE USER!
 </instructions>`,
 			} as Message);
-		} else if (m.role === "user") {
-			const { attachments, ...rest } = m as any;
-			transformed.push(rest as Message);
 		} else {
 			transformed.push(m as Message);
 		}
