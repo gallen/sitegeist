@@ -40,10 +40,7 @@
 		"declarativeNetRequest"
 	],
 	"host_permissions": [
-		"http://*/*",
-		"https://*/*",
-		"http://localhost/*",
-		"http://127.0.0.1/*"
+		"<all_urls>"
 	],
 	"declarative_net_request": {
 		"rule_resources": [
