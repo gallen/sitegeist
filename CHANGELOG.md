@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-04-28
+
+### Added
+
+- Add image input support.
+
+### Fixed
+
+- Fix agent state data structure changes for new pi-momo version.
+- Taking screenshot not working for new tabs (change host permissions to all_urls)
+
 ## [1.0.0] - 2026-03-15
 
 ### Added
