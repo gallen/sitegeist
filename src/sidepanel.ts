@@ -15,6 +15,7 @@ import {
 	createExtractDocumentTool,
 	createStreamFn,
 	ModelSelector,
+	ProvidersModelsTab,
 	ProxyTab,
 	SettingsDialog,
 	// PersistentStorageDialog,
@@ -150,38 +151,67 @@ async function selectDefaultModelForAvailableProvider() {
 		}
 	}
 
-	// If no default found, try the first model for the first provider with a key
+	// If no default found, try the first built-in model for the first provider with a key
 	for (const provider of providers) {
-		const models = getModels(provider as any);
-		if (models.length > 0) {
-			agent.state.model = models[0];
-			await storage.settings.set("lastUsedModel", models[0]);
-			await updateAuthLabel();
-			renderApp();
-			return;
+		try {
+			const models = getModels(provider as any);
+			if (models.length > 0) {
+				agent.state.model = models[0];
+				await storage.settings.set("lastUsedModel", models[0]);
+				await updateAuthLabel();
+				renderApp();
+				return;
+			}
+		} catch (_error) {
+			// Custom providers are not known to pi-ai's built-in model registry.
 		}
+	}
+
+	const customProviders = await storage.customProviders.getAll();
+	const customModel = customProviders.find((provider) => provider.models?.length)?.models?.[0];
+	if (customModel) {
+		agent.state.model = customModel;
+		await storage.settings.set("lastUsedModel", customModel);
+		await updateAuthLabel();
+		renderApp();
 	}
 }
 
 async function getProvidersWithKeys(): Promise<string[]> {
 	const providers = await storage.providerKeys.list();
-	const result: string[] = [];
+	const result = new Set<string>();
 	for (const provider of providers) {
 		const key = await storage.providerKeys.get(provider);
-		if (key) result.push(provider);
+		if (key) result.add(provider);
 	}
-	return result;
+
+	const customProviders = await storage.customProviders.getAll();
+	for (const provider of customProviders) {
+		result.add(provider.name);
+	}
+
+	return [...result];
 }
 
 async function hasAnyApiKey(): Promise<boolean> {
 	const providers = await storage.providerKeys.list();
-	return providers.length > 0;
+	if (providers.length > 0) return true;
+
+	const customProviders = await storage.customProviders.getAll();
+	return customProviders.length > 0;
 }
 
 function openApiKeysDialog(): Promise<void> {
 	return new Promise((resolve) => {
 		SettingsDialog.open(
-			[new ApiKeysOAuthTab(), new CostsTab(), new SkillsTab(), new ProxyTab(), new AboutTab()],
+			[
+				new ApiKeysOAuthTab(),
+				new ProvidersModelsTab(),
+				new CostsTab(),
+				new SkillsTab(),
+				new ProxyTab(),
+				new AboutTab(),
+			],
 			resolve,
 		);
 	});
@@ -195,7 +225,8 @@ async function updateAuthLabel() {
 	const provider = agent.state.model.provider;
 	const stored = await storage.providerKeys.get(provider);
 	if (!stored) {
-		authLabel = "";
+		const customProvider = (await storage.customProviders.getAll()).find((entry) => entry.name === provider);
+		authLabel = customProvider ? (customProvider.apiKey ? "api key" : "custom") : "";
 	} else if (isOAuthCredentials(stored)) {
 		authLabel = "subscription";
 	} else {
@@ -395,7 +426,10 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 		}),
 		getApiKey: async (provider: string) => {
 			const stored = await storage.providerKeys.get(provider);
-			if (!stored) return undefined;
+			if (!stored) {
+				const customProvider = (await storage.customProviders.getAll()).find((entry) => entry.name === provider);
+				return customProvider?.apiKey;
+			}
 			const proxyEnabled = await storage.settings.get<boolean>("proxy.enabled");
 			const proxyUrl = proxyEnabled ? (await storage.settings.get<string>("proxy.url")) || undefined : undefined;
 			return resolveApiKey(stored, provider, storage.providerKeys, proxyUrl);
@@ -703,6 +737,7 @@ const renderApp = () => {
 						onClick: () =>
 							SettingsDialog.open([
 								new ApiKeysOAuthTab(),
+								new ProvidersModelsTab(),
 								new CostsTab(),
 								new SkillsTab(),
 								new ProxyTab(),
