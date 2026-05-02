@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-01
+
 - Add custom provider and model support.
 
 ## [1.1.2] - 2026-04-28
