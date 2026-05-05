@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- User message not showing up in chat thread when user finish typing before the agent responds (make message list immutable in web-ui package) 
+
 ## [1.2.0] - 2026-05-01
 
 - Add custom provider and model support.
