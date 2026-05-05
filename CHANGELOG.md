@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-05-04
+
 ### Fixed
 - User message not showing up in chat thread when user finish typing before the agent responds (make message list immutable in web-ui package) 
 
