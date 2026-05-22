@@ -9,13 +9,18 @@ echo "Starting development servers..."
 echo ""
 
 # Check if required directories exist
-if [ ! -d "../pi-mono" ]; then
-    echo "Error: pi-mono not found at ../pi-mono"
+if [ ! -d "../pi" ]; then
+    echo "Error: pi not found at ../pi"
     exit 1
 fi
 
 if [ ! -d "../mini-lit" ]; then
     echo "Error: mini-lit not found at ../mini-lit"
+    exit 1
+fi
+
+if [ ! -d "../pi-web-ui" ]; then
+    echo "Error: pi-web-ui not found at ../pi-web-ui"
     exit 1
 fi
 
@@ -27,9 +32,17 @@ echo "Starting mini-lit dev server..."
 (cd ../mini-lit && npm run dev:tsc) &
 MINI_LIT_PID=$!
 
-echo "Starting pi-mono dev server..."
-(cd ../pi-mono && npm run dev:tsc) &
-PI_MONO_PID=$!
+echo "Starting pi-ai dev server..."
+(cd ../pi/packages/ai && npm run dev:tsc) &
+PI_AI_PID=$!
+
+echo "Starting pi-agent-core dev server..."
+(cd ../pi/packages/agent && npm run dev) &
+PI_AGENT_PID=$!
+
+echo "Starting pi-web-ui dev server..."
+(cd ../pi-web-ui && npm run dev:tsc) &
+PI_WEB_UI_PID=$!
 
 # Wait a moment for dependencies to start building
 sleep 2
@@ -45,7 +58,9 @@ SITE_PID=$!
 echo ""
 echo "All dev services started"
 echo "  mini-lit: watching"
-echo "  pi-mono: watching"
+echo "  pi-ai: watching"
+echo "  pi-agent-core: watching"
+echo "  pi-web-ui: watching"
 echo "  sitegeist: watching"
 echo "  site backend: http://localhost:3000"
 echo "  site frontend: http://localhost:8080"

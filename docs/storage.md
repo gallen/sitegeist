@@ -2,7 +2,7 @@
 
 ## Overview
 
-Sitegeist uses a unified IndexedDB storage system with multiple object stores for different data types. The base storage infrastructure is defined in `@mariozechner/pi-web-ui` and extended in Sitegeist with additional stores for skills.
+Sitegeist uses a unified IndexedDB storage system with multiple object stores for different data types. The base storage infrastructure is defined in `@earendil-works/pi-web-ui` and extended in Sitegeist with additional stores for skills.
 
 ## Current Implementation
 
@@ -28,7 +28,7 @@ Single IndexedDB database `sitegeist-storage` with multiple object stores:
 
 ### StorageBackend Interface
 
-Location: `pi-mono/packages/web-ui/src/storage/types.ts`
+Location: `pi-web-ui/src/storage/types.ts`
 
 ```typescript
 export interface StorageBackend {
@@ -62,7 +62,7 @@ export interface StorageBackend {
 
 ### IndexedDBStorageBackend
 
-Location: `pi-mono/packages/web-ui/src/storage/backends/indexeddb-storage-backend.ts`
+Location: `pi-web-ui/src/storage/backends/indexeddb-storage-backend.ts`
 
 Implements the `StorageBackend` interface using IndexedDB APIs.
 
@@ -91,7 +91,7 @@ const backend = new IndexedDBStorageBackend({
 
 ### Store Pattern
 
-Location: `pi-mono/packages/web-ui/src/storage/store.ts`
+Location: `pi-web-ui/src/storage/store.ts`
 
 Base class for all stores:
 
@@ -125,7 +125,7 @@ export abstract class Store {
 
 ### SettingsStore
 
-Location: `pi-mono/packages/web-ui/src/storage/stores/settings-store.ts`
+Location: `pi-web-ui/src/storage/stores/settings-store.ts`
 
 Simple key-value store for application settings.
 
@@ -144,7 +144,7 @@ export class SettingsStore extends Store {
 
 ### ProviderKeysStore
 
-Location: `pi-mono/packages/web-ui/src/storage/stores/provider-keys-store.ts`
+Location: `pi-web-ui/src/storage/stores/provider-keys-store.ts`
 
 Stores API keys for LLM providers (Anthropic, OpenAI, etc).
 
@@ -162,7 +162,7 @@ export class ProviderKeysStore extends Store {
 
 ### SessionsStore
 
-Location: `pi-mono/packages/web-ui/src/storage/stores/sessions-store.ts`
+Location: `pi-web-ui/src/storage/stores/sessions-store.ts`
 
 Manages chat sessions using two object stores for performance:
 - `sessions` - Full session data (large, rarely listed)
@@ -258,7 +258,7 @@ export class SkillsStore extends Store {
 
 ### Base AppStorage (web-ui)
 
-Location: `pi-mono/packages/web-ui/src/storage/app-storage.ts`
+Location: `pi-web-ui/src/storage/app-storage.ts`
 
 ```typescript
 export class AppStorage {
@@ -529,15 +529,15 @@ export class DataExporter {
 ## Related Files
 
 ### Core Storage (web-ui)
-- [types.ts](../../pi-mono/packages/web-ui/src/storage/types.ts) - Interfaces and types
-- [store.ts](../../pi-mono/packages/web-ui/src/storage/store.ts) - Base Store class
-- [app-storage.ts](../../pi-mono/packages/web-ui/src/storage/app-storage.ts) - Base AppStorage
-- [backends/indexeddb-storage-backend.ts](../../pi-mono/packages/web-ui/src/storage/backends/indexeddb-storage-backend.ts) - IndexedDB implementation
+- [types.ts](../../pi-web-ui/src/storage/types.ts) - Interfaces and types
+- [store.ts](../../pi-web-ui/src/storage/store.ts) - Base Store class
+- [app-storage.ts](../../pi-web-ui/src/storage/app-storage.ts) - Base AppStorage
+- [backends/indexeddb-storage-backend.ts](../../pi-web-ui/src/storage/backends/indexeddb-storage-backend.ts) - IndexedDB implementation
 
 ### Store Implementations (web-ui)
-- [stores/settings-store.ts](../../pi-mono/packages/web-ui/src/storage/stores/settings-store.ts)
-- [stores/provider-keys-store.ts](../../pi-mono/packages/web-ui/src/storage/stores/provider-keys-store.ts)
-- [stores/sessions-store.ts](../../pi-mono/packages/web-ui/src/storage/stores/sessions-store.ts)
+- [stores/settings-store.ts](../../pi-web-ui/src/storage/stores/settings-store.ts)
+- [stores/provider-keys-store.ts](../../pi-web-ui/src/storage/stores/provider-keys-store.ts)
+- [stores/sessions-store.ts](../../pi-web-ui/src/storage/stores/sessions-store.ts)
 
 ### Extension Storage (sitegeist)
 - [app-storage.ts](../src/storage/app-storage.ts) - SitegeistAppStorage

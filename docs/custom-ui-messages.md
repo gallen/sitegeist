@@ -21,7 +21,7 @@ export type AppMessage = BaseMessage | CustomMessages[keyof CustomMessages];
 
 **Extending**: Add custom types via declaration merging
 ```typescript
-declare module "@mariozechner/pi-web-ui" {
+declare module "@earendil-works/pi-web-ui" {
   interface CustomMessages {
     welcome: WelcomeMessage;
     navigation: NavigationMessage;
@@ -54,7 +54,7 @@ export interface NavigationMessage {
   favicon?: string;
 }
 
-declare module "@mariozechner/pi-web-ui" {
+declare module "@earendil-works/pi-web-ui" {
   interface CustomMessages {
     navigation: NavigationMessage;
   }
@@ -120,7 +120,7 @@ function createNavigationRenderer(agent: Agent): MessageRenderer<NavigationMessa
 ### 4. Register Renderer
 
 ```typescript
-import { registerMessageRenderer } from "@mariozechner/pi-web-ui";
+import { registerMessageRenderer } from "@earendil-works/pi-web-ui";
 
 registerMessageRenderer("navigation", navigationRenderer);
 ```
@@ -251,10 +251,10 @@ document.addEventListener("tutorial-selected", (e: CustomEvent) => {
 ## Files
 
 **Core:**
-- `pi-mono/packages/web-ui/src/components/Messages.ts` - Message types
-- `pi-mono/packages/web-ui/src/components/MessageList.ts` - Rendering
-- `pi-mono/packages/web-ui/src/components/message-renderer-registry.ts` - Registration
-- `pi-mono/packages/web-ui/src/agent/agent.ts` - Transformation
+- `pi-web-ui/src/components/Messages.ts` - Message types
+- `pi-web-ui/src/components/MessageList.ts` - Rendering
+- `pi-web-ui/src/components/message-renderer-registry.ts` - Registration
+- `pi-web-ui/src/agent/agent.ts` - Transformation
 
 **Examples:**
 - `sitegeist/src/messages/NavigationMessage.ts` - Navigation message

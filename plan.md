@@ -9,12 +9,12 @@ Refactor the API Keys tab into a "Providers & Models" system with two provider t
 ## Current State
 
 **Files:**
-- `pi-mono/packages/web-ui/src/dialogs/SettingsDialog.ts` - Contains `ApiKeysTab`
-- `pi-mono/packages/web-ui/src/dialogs/ModelSelector.ts` - Hard-coded Ollama discovery (lines 94-156)
-- `pi-mono/packages/web-ui/src/components/ProviderKeyInput.ts` - API key input component
-- `pi-mono/packages/ai/src/types.ts` - `Model<TApi>` interface (lines 154-170)
-- `pi-mono/packages/ai/src/models.ts` - Model registry (currently read-only)
-- `pi-mono/packages/ai/src/models.generated.ts` - Generated known provider models
+- `pi-web-ui/src/dialogs/SettingsDialog.ts` - Contains `ApiKeysTab`
+- `pi-web-ui/src/dialogs/ModelSelector.ts` - Hard-coded Ollama discovery (lines 94-156)
+- `pi-web-ui/src/components/ProviderKeyInput.ts` - API key input component
+- `pi/packages/ai/src/types.ts` - `Model<TApi>` interface (lines 154-170)
+- `pi/packages/ai/src/models.ts` - Model registry (currently read-only)
+- `pi/packages/ai/src/models.generated.ts` - Generated known provider models
 
 **Problems:**
 1. Only supports cloud providers with API keys
@@ -129,7 +129,7 @@ Only shown for manual provider types. All fields map to `Model<TApi>` interface:
 
 ### Storage Schema
 
-**Location:** `pi-mono/packages/web-ui/src/storage/stores/`
+**Location:** `pi-web-ui/src/storage/stores/`
 
 ```typescript
 // File: custom-providers-store.ts
@@ -173,7 +173,7 @@ type CustomProviderType =
 
 ## Implementation Plan
 
-### 1. Storage Layer (pi-mono/packages/web-ui)
+### 1. Storage Layer (pi-web-ui)
 
 **Create: `src/storage/stores/custom-providers-store.ts`**
 - Define `CustomProviderType` type
@@ -186,7 +186,7 @@ type CustomProviderType =
 - Wire up to IndexedDB
 - Increment database version
 
-### 2. Discovery Utilities (pi-mono/packages/web-ui)
+### 2. Discovery Utilities (pi-web-ui)
 
 **Create: `src/utils/model-discovery.ts`**
 
@@ -245,7 +245,7 @@ async function discoverModels(
 - Start simple (default to openai-completions), add special cases as needed
 - These functions used by both CustomProviderDialog AND ModelSelector
 
-### 3. Model Registry Updates (pi-mono/packages/ai)
+### 3. Model Registry Updates (pi/packages/ai)
 
 **Update: `src/models.ts`**
 
@@ -271,7 +271,7 @@ export function clearCustomModels(): void
 - `unregisterProvider()` removes provider from registry
 - `getProviders()` and `getModels()` work transparently with custom models
 
-### 4. UI Components (pi-mono/packages/web-ui)
+### 4. UI Components (pi-web-ui)
 
 **Create: `src/components/KnownProvidersList.ts`**
 - Loop through known providers from `getProviders()`
@@ -309,7 +309,7 @@ export function clearCustomModels(): void
 - Save creates/updates entry in customModels store
 - Cancel discards changes
 
-### 5. Settings Tab Integration (pi-mono/packages/web-ui)
+### 5. Settings Tab Integration (pi-web-ui)
 
 **Update: `src/dialogs/SettingsDialog.ts`**
 - Rename `ApiKeysTab` → `ProvidersModelsTab`
@@ -326,7 +326,7 @@ export function clearCustomModels(): void
 - Models now come from unified registry (includes custom providers)
 - No code changes needed - registry handles everything
 
-### 6. Initialization (pi-mono/packages/web-ui)
+### 6. Initialization (pi-web-ui)
 
 **Update: `src/storage/app-storage.ts`**
 
@@ -361,7 +361,7 @@ Call on app startup before any model selection happens.
 ### 7. Sitegeist Integration
 
 **Update: `sitegeist/src/sidepanel.ts`**
-- Import: `import { ProvidersModelsTab } from "@mariozechner/pi-web-ui"`
+- Import: `import { ProvidersModelsTab } from "@earendil-works/pi-web-ui"`
 - Update SettingsDialog to use new tab name
 
 **Update: `sitegeist/src/storage/app-storage.ts`**

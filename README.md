@@ -21,7 +21,8 @@ Clone this repo plus its sibling dependencies into the same parent directory:
 ```
 parent/
   mini-lit/          # https://github.com/badlogic/mini-lit
-  pi-mono/           # https://github.com/badlogic/pi-mono
+  pi/                # https://github.com/earendil-works/pi
+  pi-web-ui/         # https://github.com/earendil-works/pi-web-ui
   sitegeist/         # this repo
 ```
 
@@ -29,19 +30,20 @@ Install dependencies in each repo:
 
 ```bash
 (cd ../mini-lit && npm install)
-(cd ../pi-mono && npm install)
+(cd ../pi && npm install)
+(cd ../pi-web-ui && npm install)
 npm install
 ```
 
 `npm install` sets up the Husky pre-commit hook automatically.
 
-Start all dev watchers (mini-lit, pi-mono, sitegeist extension, marketing site):
+Start all dev watchers (mini-lit, pi-ai, pi-agent-core, pi-web-ui, sitegeist extension, marketing site):
 
 ```bash
 ./dev.sh
 ```
 
-Changes in `../mini-lit` or `../pi-mono` are rebuilt automatically and picked up by the sitegeist watcher.
+Changes in `../mini-lit`, `../pi`, or `../pi-web-ui` are rebuilt automatically and picked up by the sitegeist watcher.
 
 To run only the extension watcher without dependencies or the marketing site:
 

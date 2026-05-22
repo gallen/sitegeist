@@ -1,9 +1,6 @@
 import "@mariozechner/mini-lit/dist/MarkdownBlock.js";
-import { icon } from "@mariozechner/mini-lit";
-import { Diff } from "@mariozechner/mini-lit/dist/Diff.js";
-import i18n from "@mariozechner/mini-lit/dist/i18n.js";
-import type { AgentTool } from "@mariozechner/pi-agent-core";
-import { StringEnum, type ToolResultMessage } from "@mariozechner/pi-ai";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
+import { StringEnum, type ToolResultMessage } from "@earendil-works/pi-ai";
 import {
 	registerToolRenderer,
 	renderCollapsibleHeader,
@@ -11,7 +8,10 @@ import {
 	SandboxIframe,
 	type ToolRenderer,
 	type ToolRenderResult,
-} from "@mariozechner/pi-web-ui";
+} from "@earendil-works/pi-web-ui";
+import { icon } from "@mariozechner/mini-lit";
+import { Diff } from "@mariozechner/mini-lit/dist/Diff.js";
+import i18n from "@mariozechner/mini-lit/dist/i18n.js";
 import { html, type TemplateResult } from "lit";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Sparkles } from "lucide";

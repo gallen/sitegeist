@@ -2,7 +2,7 @@
 
 ## Overview
 
-Sitegeist uses a key-value settings store for application configuration like theme, proxy settings, and user preferences. Settings are stored in IndexedDB and accessed through the `SettingsStore` class from `@mariozechner/pi-web-ui`.
+Sitegeist uses a key-value settings store for application configuration like theme, proxy settings, and user preferences. Settings are stored in IndexedDB and accessed through the `SettingsStore` class from `@earendil-works/pi-web-ui`.
 
 ## Architecture
 

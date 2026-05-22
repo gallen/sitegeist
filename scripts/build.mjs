@@ -37,16 +37,25 @@ const buildOptions = {
 		".ts": "ts",
 		".tsx": "tsx",
 	},
+	tsconfigRaw: {
+		compilerOptions: {
+			experimentalDecorators: true,
+			useDefineForClassFields: false,
+		},
+	},
 	define: {
 		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? (isWatch ? "development" : "production")),
 		"process.env.TARGET_BROWSER": JSON.stringify(targetBrowser),
 		global: "globalThis",
 	},
 	inject: [join(packageRoot, "scripts/process-shim.js")],
-	// Force all mini-lit and lit imports to resolve to sitegeist's node_modules
+	// Force shared dependencies to resolve to sitegeist's node_modules
 	alias: {
 		process: join(packageRoot, "scripts/process-shim.js"),
 		"@mariozechner/mini-lit": join(packageRoot, "node_modules/@mariozechner/mini-lit"),
+		"@earendil-works/pi-agent-core": join(packageRoot, "node_modules/@earendil-works/pi-agent-core"),
+		"@earendil-works/pi-ai": join(packageRoot, "node_modules/@earendil-works/pi-ai"),
+		"@earendil-works/pi-web-ui": join(packageRoot, "node_modules/@earendil-works/pi-web-ui"),
 		lit: join(packageRoot, "node_modules/lit"),
 		"lit/decorators.js": join(packageRoot, "node_modules/lit/decorators.js"),
 		"lit/directives/class-map.js": join(packageRoot, "node_modules/lit/directives/class-map.js"),
