@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-05-21
+
 ### Fixed
 - Build bread on github workflow (pi package rename, pi-web-ui seperate repo)
 
