@@ -2,10 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+- Build break on github workflow (pi-web-ui used wrong npm registry)
+
 ## [1.3.1] - 2026-05-21
 
 ### Fixed
-- Build bread on github workflow (pi package rename, pi-web-ui seperate repo)
+- Build break on github workflow (pi package rename, pi-web-ui seperate repo)
 
 ## [1.3.0] - 2026-05-21
 
