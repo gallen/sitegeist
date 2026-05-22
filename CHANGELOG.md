@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-05-21
+
 ### Changed
 - Upgrade dependencies for pi-web-ui breaking up from pi main repo.
 
