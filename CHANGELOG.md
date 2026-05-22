@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-05-21
+
 ### Fixed
 - Build break on github workflow (pi-web-ui used wrong npm registry)
 
