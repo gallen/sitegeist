@@ -54,6 +54,7 @@ const buildOptions = {
 		process: join(packageRoot, "scripts/process-shim.js"),
 		"@mariozechner/mini-lit": join(packageRoot, "node_modules/@mariozechner/mini-lit"),
 		"@earendil-works/pi-agent-core": join(packageRoot, "node_modules/@earendil-works/pi-agent-core"),
+		"@earendil-works/pi-ai/compat": join(packageRoot, "node_modules/@earendil-works/pi-ai/dist/compat.js"),
 		"@earendil-works/pi-ai": join(packageRoot, "node_modules/@earendil-works/pi-ai"),
 		"@earendil-works/pi-web-ui": join(packageRoot, "node_modules/@earendil-works/pi-web-ui"),
 		lit: join(packageRoot, "node_modules/lit"),

@@ -9,7 +9,7 @@ import {
 	type AgentState,
 	type AgentTool,
 } from "@earendil-works/pi-agent-core";
-import { getModel, getModels, type Model } from "@earendil-works/pi-ai";
+import { getModel, getModels, type Model } from "@earendil-works/pi-ai/compat";
 import {
 	ChatPanel,
 	createExtractDocumentTool,
