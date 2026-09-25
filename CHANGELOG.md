@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [1.3.4] - 2026-09-25
 ### Changed
 - Upgrade pi dependencies to 0.87.1.
 
