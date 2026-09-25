@@ -170,7 +170,7 @@ CRITICAL: Use browserjs() and repl tool for DOM manipulation. Use this ONLY for 
 export const debuggerRenderer: ToolRenderer<DebuggerParams, DebuggerResult> = {
 	render(
 		params: DebuggerParams | undefined,
-		result: ToolResultMessage<DebuggerResult> | undefined,
+		result: ToolResultMessage | undefined,
 		isStreaming?: boolean,
 	): ToolRenderResult {
 		// Determine status

@@ -16,7 +16,7 @@ interface TestPrompt {
 
 const models = [
 	getModel("anthropic", "claude-sonnet-4-5-20250929"),
-	getModel("openai", "gpt-5-codex"),
+	getModel("openai", "gpt-5"),
 	getModel("google", "gemini-2.5-pro"),
 	getModel("openrouter", "z-ai/glm-4.6"),
 ];
