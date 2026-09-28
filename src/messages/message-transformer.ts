@@ -100,8 +100,15 @@ export async function browserMessageTransformer(messages: AgentMessage[]): Promi
 			continue;
 		}
 
-		// Filter non-LLM messages
-		if (m.role !== "user" && m.role !== "assistant" && m.role !== "toolResult" && m.role !== "navigation") {
+		// System messages carry the prompt and tool declarations, including mid-session tool updates.
+		// Filter non-LLM messages.
+		if (
+			m.role !== "system" &&
+			m.role !== "user" &&
+			m.role !== "assistant" &&
+			m.role !== "toolResult" &&
+			m.role !== "navigation"
+		) {
 			continue;
 		}
 

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Restore browser tool access and system instructions after the pi 0.87.1 upgrade by preserving system messages sent to the model.
+
 ## [1.3.4] - 2026-09-25
 ### Changed
 - Upgrade pi dependencies to 0.87.1.
