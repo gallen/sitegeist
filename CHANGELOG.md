@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Upgrade pi dependencies to 1.0.0
 
 ## [1.3.5] - 2026-09-28
 
