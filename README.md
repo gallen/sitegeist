@@ -8,6 +8,12 @@ Sitegeist can automate repetitive web tasks, extract data from any website, navi
 
 Bring your own API key or log in with an existing subscription (Anthropic Claude, OpenAI/ChatGPT, GitHub Copilot, Google Gemini). Your data stays on your machine. Nothing is collected or tracked.
 
+## Web research
+
+Sitegeist prefers background fetching for public articles, documentation, and research links, without changing your active tab. It extracts readable text and source links, then falls back to browser navigation when content requires JavaScript, login, or interaction.
+
+Background requests do not send login cookies or run website scripts. Downloads are limited to 2 MiB, with up to three concurrent requests and a 25-second timeout. PDFs and other documents use the document extraction tool.
+
 ## Download & Install
 
 Visit [sitegeist.ai](https://sitegeist.ai) for download links and step-by-step installation instructions.
@@ -75,7 +81,7 @@ Some subscription logins require the CORS proxy (configurable in Settings > Prox
 ./check.sh
 ```
 
-Runs formatting, linting, and type checking for the extension and the `site/` subproject.
+Runs formatting, linting, type checking, and background page-fetching tests for the extension, plus checks for the `site/` subproject. Run `npm test` for just the fetching tests.
 
 The Husky pre-commit hook runs the same checks before each commit.
 

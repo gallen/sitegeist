@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Background web research with `fetch_page` and a REPL helper: readable text and source links without changing browser tabs, bounded concurrent requests, cancellation, and browser fallback guidance.
 
 ## [1.3.6] - 2026-10-02
 ### Changed

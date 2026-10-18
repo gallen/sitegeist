@@ -18,6 +18,8 @@ declare const process: {
 import {
 	ASK_USER_WHICH_ELEMENT_TOOL_DESCRIPTION,
 	BROWSERJS_RUNTIME_PROVIDER_DESCRIPTION,
+	FETCH_PAGE_RUNTIME_PROVIDER_DESCRIPTION,
+	FETCH_PAGE_TOOL_DESCRIPTION,
 	NATIVE_INPUT_EVENTS_DESCRIPTION,
 	NAVIGATE_RUNTIME_PROVIDER_DESCRIPTION,
 	NAVIGATE_TOOL_DESCRIPTION,
@@ -34,6 +36,7 @@ const runtimeProviders = [
 	{ name: "NATIVE_INPUT_EVENTS", description: NATIVE_INPUT_EVENTS_DESCRIPTION },
 	{ name: "BROWSERJS", description: BROWSERJS_RUNTIME_PROVIDER_DESCRIPTION },
 	{ name: "NAVIGATE", description: NAVIGATE_RUNTIME_PROVIDER_DESCRIPTION },
+	{ name: "FETCH_PAGE", description: FETCH_PAGE_RUNTIME_PROVIDER_DESCRIPTION },
 ];
 
 const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
@@ -75,6 +78,23 @@ export const TOOL_DEFINITIONS = [
 				},
 			},
 			required: ["action"],
+		},
+	},
+	{
+		name: "fetch_page",
+		description: FETCH_PAGE_TOOL_DESCRIPTION,
+		input_schema: {
+			type: "object",
+			properties: {
+				url: { type: "string", description: "HTTP(S) URL to read without navigating a browser tab" },
+				maxChars: {
+					type: "integer",
+					minimum: 1,
+					maximum: 100000,
+					description: "Maximum returned text characters (default 20000)",
+				},
+			},
+			required: ["url"],
 		},
 	},
 	{

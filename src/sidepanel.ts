@@ -47,9 +47,11 @@ import { SYSTEM_PROMPT } from "./prompts/prompts.js";
 import { SitegeistAppStorage } from "./storage/app-storage.js";
 import { DebuggerTool } from "./tools/debugger.js";
 import { ExtractImageTool, registerExtractImageRenderer } from "./tools/extract-image.js";
+import { FetchPageTool } from "./tools/fetch-page.js";
 import { AskUserWhichElementTool, skillTool } from "./tools/index.js";
 import { NativeInputEventsRuntimeProvider } from "./tools/NativeInputEventsRuntimeProvider.js";
 import { isToolNavigating, NavigateTool } from "./tools/navigate.js";
+import { FetchPageRuntimeProvider } from "./tools/repl/fetch-page-runtime-provider.js";
 import { createReplTool } from "./tools/repl/repl.js";
 import { BrowserJsRuntimeProvider, NavigateRuntimeProvider } from "./tools/repl/runtime-providers.js";
 import * as port from "./utils/port.js";
@@ -551,6 +553,7 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 		},
 		toolsFactory: (_agent, _agentInterface, _artifactsPanel, runtimeProvidersFactory) => {
 			const navigateTool = new NavigateTool();
+			const fetchPageTool = new FetchPageTool();
 			const selectElementTool = new AskUserWhichElementTool();
 
 			// Create extract_document tool with CORS proxy from settings (loaded above)
@@ -574,6 +577,7 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 					...pageProviders, // Make them available in REPL context too
 					new BrowserJsRuntimeProvider(pageProviders), // Pass to page context
 					new NavigateRuntimeProvider(navigateTool),
+					new FetchPageRuntimeProvider(fetchPageTool),
 				];
 			};
 
@@ -582,6 +586,7 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 
 			const tools: unknown[] = [
 				navigateTool,
+				fetchPageTool,
 				selectElementTool,
 				replTool,
 				skillTool,
