@@ -584,15 +584,15 @@ const createAgent = async (initialState?: Partial<AgentState>, shouldSave = true
 			const extractImageTool = new ExtractImageTool();
 			extractImageTool.windowId = currentWindowId;
 
-			const tools: unknown[] = [
-				navigateTool,
-				fetchPageTool,
-				selectElementTool,
-				replTool,
-				skillTool,
-				extractDocumentTool,
-				extractImageTool,
-			];
+			// Add tools individually so TypeScript doesn't compare their schema-derived types.
+			const tools: unknown[] = [];
+			tools.push(navigateTool);
+			tools.push(fetchPageTool);
+			tools.push(selectElementTool);
+			tools.push(replTool);
+			tools.push(skillTool);
+			tools.push(extractDocumentTool);
+			tools.push(extractImageTool);
 
 			// Conditionally add debugger tool if enabled
 			if (debuggerModeEnabled) {
