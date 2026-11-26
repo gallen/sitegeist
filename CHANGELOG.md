@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [1.4.2] - 2026-11-26
 ### Fixed
 - Fix type error in sidepanel.ts
 
